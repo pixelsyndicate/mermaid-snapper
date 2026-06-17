@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mermaid Screenshot Helper</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./stylesheets/app.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Mermaid Screenshot Helper</h1>
+      <div class="version">Mermaid 11.15.0</div>
+    </header>
+
+    <main>
+      <section class="panel editor-panel" aria-label="Mermaid source editor">
+        <div class="panel-head">
+          <div class="controls">
+            <label for="sampleSelect">Sample</label>
+            <select id="sampleSelect">
+              <option value="last">Last saved</option>
+              <option value="dashboard">Drilldown dashboard</option>
+              <option value="orders">Order fulfillment</option>
+              <option value="flowchart">Writing Stages</option>
+              <option value="class">Class diagram</option>
+              <option value="er">Entity relationship</option>
+              <option value="gantt">Gantt</option>
+              <option value="pie">Pie chart</option>
+              <option value="quadrant">Quadrant chart</option>
+              <option value="requirement">Requirement diagram</option>
+              <option value="mindmap">Mindmap</option>
+              <option value="timeline">History timeline</option>
+              <option value="architecture">Architecture</option>
+              <option value="radar">Radar</option>
+              <option value="eventmodeling">Event modeling</option>
+              <option value="venn">Venn</option>
+              <option value="treeview">TreeView</option>
+              <option value="blank">Blank</option>
+            </select>
+          </div>
+          <button class="primary" id="renderBtn" type="button">Render</button>
+        </div>
+
+        <label class="sr-only" for="source">Mermaid source</label>
+        <textarea id="source" spellcheck="false"></textarea>
+
+        <div>
+          <div id="error" class="error" role="alert"></div>
+          <div class="panel-foot">
+            <div class="status" id="status">Ready</div>
+            <div class="controls">
+              <button id="clearBtn" type="button">Clear</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <button
+        class="splitter"
+        id="splitter"
+        type="button"
+        aria-label="Resize editor and preview panes"
+        aria-valuemin="25"
+        aria-valuemax="75"
+        aria-valuenow="42"
+      ></button>
+
+      <section class="panel preview-panel" aria-label="Rendered Mermaid preview">
+        <div class="preview-toolbar">
+          <div class="controls">
+            <label for="themeSelect">Theme</label>
+            <select id="themeSelect">
+              <option value="default">Default</option>
+              <option value="neutral">Neutral</option>
+              <option value="base">Base</option>
+              <option value="forest">Forest</option>
+              <option value="dark">Dark</option>
+            </select>
+
+            <label for="widthInput">Width</label>
+            <input id="widthInput" type="number" min="360" max="2400" step="20" value="960">
+
+            <label for="scaleInput">Scale</label>
+            <input id="scaleInput" type="number" min="40" max="500" step="5" value="100">
+
+            <label for="bgInput">Background</label>
+            <input id="bgInput" type="color" value="#ffffff">
+          </div>
+
+          <div class="controls">
+            <button id="copySvgBtn" type="button">Copy SVG</button>
+            <button id="downloadSvgBtn" type="button">Download SVG</button>
+            <button id="downloadPngBtn" type="button">Download PNG</button>
+          </div>
+        </div>
+
+        <div class="preview-shell">
+          <div id="captureArea">
+            <div id="diagram">
+              <div class="empty-state">Paste Mermaid source, choose a sample, or render the saved diagram.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="./vendor/mermaid/mermaid.min.js"></script>
+  <script src="./javascripts/utils.js"></script>
+  <script src="./javascripts/samples.js"></script>
+  <script src="./javascripts/app.js"></script>
+</body>
+</html>

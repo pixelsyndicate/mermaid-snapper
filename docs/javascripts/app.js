@@ -1,0 +1,344 @@
+(function bootMermaidHelper() {
+  const { clampNumber, prepareSourceForPngExport, stripCodeFence } = window.MermaidHelperUtils;
+  const samples = window.MermaidHelperSamples;
+  const storageKeys = {
+    source: 'mermaid-helper-source',
+    theme: 'mermaid-helper-theme',
+    width: 'mermaid-helper-width',
+    scale: 'mermaid-helper-scale',
+    background: 'mermaid-helper-background',
+    split: 'mermaid-helper-split'
+  };
+
+  const mainEl = document.querySelector('main');
+  const sourceEl = document.getElementById('source');
+  const sampleSelect = document.getElementById('sampleSelect');
+  const themeSelect = document.getElementById('themeSelect');
+  const widthInput = document.getElementById('widthInput');
+  const scaleInput = document.getElementById('scaleInput');
+  const bgInput = document.getElementById('bgInput');
+  const splitter = document.getElementById('splitter');
+  const captureArea = document.getElementById('captureArea');
+  const diagramEl = document.getElementById('diagram');
+  const errorEl = document.getElementById('error');
+  const statusEl = document.getElementById('status');
+
+  let currentSvgText = '';
+  let renderCount = 0;
+  let splitPercent = 42;
+  let isDraggingSplit = false;
+  let isExportingPng = false;
+
+  function applyPreviewSettings() {
+    const width = clampNumber(widthInput.value, 360, 2400, 960);
+    const scale = clampNumber(scaleInput.value, 40, 500, 100);
+    const scaleFactor = scale / 100;
+
+    widthInput.value = width;
+    scaleInput.value = scale;
+    captureArea.style.width = `${width}px`;
+    captureArea.style.backgroundColor = bgInput.value || '#ffffff';
+    captureArea.style.transform = `scale(${scaleFactor})`;
+    captureArea.style.marginRight = scaleFactor <= 1 ? '0' : `${width * (scaleFactor - 1)}px`;
+    captureArea.style.marginBottom = scaleFactor <= 1 ? '0' : `${captureArea.offsetHeight * (scaleFactor - 1)}px`;
+  }
+
+  function applySplit(percent) {
+    splitPercent = clampNumber(percent, 25, 75, 42);
+    mainEl.style.setProperty('--editor-width', `${splitPercent}%`);
+    splitter.setAttribute('aria-valuenow', String(Math.round(splitPercent)));
+  }
+
+  function updateSplitFromClientX(clientX) {
+    const rect = mainEl.getBoundingClientRect();
+    const nextPercent = ((clientX - rect.left) / rect.width) * 100;
+    applySplit(nextPercent);
+  }
+
+  function setError(message) {
+    errorEl.style.display = message ? 'block' : 'none';
+    errorEl.textContent = message || '';
+  }
+
+  function setStatus(message) {
+    statusEl.textContent = message;
+  }
+
+  function persist() {
+    localStorage.setItem(storageKeys.source, sourceEl.value);
+    localStorage.setItem(storageKeys.theme, themeSelect.value);
+    localStorage.setItem(storageKeys.width, widthInput.value);
+    localStorage.setItem(storageKeys.scale, scaleInput.value);
+    localStorage.setItem(storageKeys.background, bgInput.value);
+    localStorage.setItem(storageKeys.split, String(Math.round(splitPercent)));
+  }
+
+  function restore() {
+    const savedSource = localStorage.getItem(storageKeys.source);
+    sourceEl.value = savedSource || samples.dashboard;
+    themeSelect.value = localStorage.getItem(storageKeys.theme) || 'default';
+    widthInput.value = localStorage.getItem(storageKeys.width) || '960';
+    scaleInput.value = localStorage.getItem(storageKeys.scale) || '100';
+    bgInput.value = localStorage.getItem(storageKeys.background) || '#ffffff';
+    sampleSelect.value = savedSource ? 'last' : 'dashboard';
+    applySplit(localStorage.getItem(storageKeys.split) || 42);
+    applyPreviewSettings();
+  }
+
+  function getMermaidConfig(htmlLabels) {
+    return {
+      startOnLoad: false,
+      securityLevel: 'loose',
+      theme: themeSelect.value,
+      flowchart: {
+        htmlLabels,
+        useMaxWidth: true
+      },
+      sequence: {
+        useMaxWidth: true
+      }
+    };
+  }
+
+  async function renderMermaid() {
+    setError('');
+    applyPreviewSettings();
+    persist();
+
+    const source = stripCodeFence(sourceEl.value);
+    if (!source) {
+      currentSvgText = '';
+      diagramEl.innerHTML = '<div class="empty-state">Paste Mermaid source or choose a sample, then render.</div>';
+      setStatus('No source to render');
+      return;
+    }
+
+    try {
+      renderCount += 1;
+      mermaid.initialize(getMermaidConfig(true));
+      await mermaid.parse(source);
+      const result = await mermaid.render(`mermaid-render-${Date.now()}-${renderCount}`, source);
+      currentSvgText = result.svg;
+      diagramEl.innerHTML = result.svg;
+      setStatus(`Rendered ${new Date().toLocaleTimeString()}`);
+    } catch (error) {
+      setError(error && error.message ? error.message : String(error));
+      setStatus('Render failed');
+    }
+  }
+
+  async function renderSvgForPngExport(source) {
+    renderCount += 1;
+    mermaid.initialize(getMermaidConfig(false));
+    await mermaid.parse(source);
+    const result = await mermaid.render(`mermaid-png-export-${Date.now()}-${renderCount}`, source);
+    return result.svg;
+  }
+
+  function getSvgElement() {
+    return diagramEl.querySelector('svg');
+  }
+
+  function getSerializedSvg(svgSource) {
+    const sourceSvg = svgSource || getSvgElement();
+    if (!sourceSvg) {
+      throw new Error('No rendered SVG is available. Render a diagram first.');
+    }
+
+    const clone = typeof sourceSvg === 'string'
+      ? new DOMParser().parseFromString(sourceSvg, 'image/svg+xml').documentElement
+      : sourceSvg.cloneNode(true);
+    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    clone.setAttribute('style', `background: ${bgInput.value || '#ffffff'};`);
+    return new XMLSerializer().serializeToString(clone);
+  }
+
+  function triggerDownload(href, filename) {
+    const link = document.createElement('a');
+    link.href = href;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+
+  function downloadBlob(blob, filename, revokeDelayMs = 60000) {
+    const url = URL.createObjectURL(blob);
+    triggerDownload(url, filename);
+    setTimeout(() => URL.revokeObjectURL(url), revokeDelayMs);
+  }
+
+  function drawSvgTextToCanvas(svgText, width, height, scale) {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = width * scale;
+      canvas.height = height * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(scale, scale);
+      ctx.fillStyle = bgInput.value || '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+
+      const image = new Image();
+      const url = URL.createObjectURL(new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' }));
+      image.onload = () => {
+        try {
+          ctx.drawImage(image, 0, 0, width, height);
+          URL.revokeObjectURL(url);
+          resolve(canvas);
+        } catch (error) {
+          URL.revokeObjectURL(url);
+          reject(error);
+        }
+      };
+      image.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('The generated SVG could not be loaded for PNG export.'));
+      };
+      image.src = url;
+    });
+  }
+
+  function downloadSvg() {
+    try {
+      const svgText = getSerializedSvg();
+      downloadBlob(new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' }), 'mermaid-diagram.svg');
+      setStatus('SVG downloaded');
+    } catch (error) {
+      setError(error.message);
+    }
+  }
+
+  async function downloadPng() {
+    if (isExportingPng) {
+      return;
+    }
+
+    isExportingPng = true;
+    const pngButton = document.getElementById('downloadPngBtn');
+    pngButton.disabled = true;
+
+    try {
+      const source = stripCodeFence(sourceEl.value);
+      if (!source) {
+        throw new Error('No source is available. Render a diagram first.');
+      }
+
+      setError('');
+      setStatus('Preparing PNG...');
+      const exportSvg = await renderSvgForPngExport(prepareSourceForPngExport(source));
+      const svgText = getSerializedSvg(exportSvg);
+      const svgDoc = new DOMParser().parseFromString(svgText, 'image/svg+xml').documentElement;
+      const viewBox = svgDoc.getAttribute('viewBox');
+      const viewBoxParts = viewBox ? viewBox.split(/\s+/).map(Number) : [];
+      const measuredSvg = getSvgElement();
+      const rect = measuredSvg ? measuredSvg.getBoundingClientRect() : { width: 960, height: 540 };
+      const width = Math.max(1, Math.ceil(viewBoxParts[2] || parseFloat(svgDoc.getAttribute('width')) || rect.width));
+      const height = Math.max(1, Math.ceil(viewBoxParts[3] || parseFloat(svgDoc.getAttribute('height')) || rect.height));
+      const canvas = await drawSvgTextToCanvas(svgText, width, height, 2);
+      triggerDownload(canvas.toDataURL('image/png'), 'mermaid-diagram.png');
+      setStatus('PNG downloaded');
+    } catch (error) {
+      setError(error.message);
+      setStatus('PNG export failed');
+    } finally {
+      isExportingPng = false;
+      pngButton.disabled = false;
+    }
+  }
+
+  async function copySvg() {
+    try {
+      const svgText = getSerializedSvg();
+      await navigator.clipboard.writeText(svgText);
+      setStatus('SVG copied');
+    } catch (error) {
+      setError('Copy failed. Browser clipboard access may be restricted.');
+    }
+  }
+
+  sampleSelect.addEventListener('change', () => {
+    const value = sampleSelect.value;
+    sourceEl.value = value === 'last' ? localStorage.getItem(storageKeys.source) || samples.dashboard : samples[value] || '';
+    persist();
+    renderMermaid();
+  });
+
+  document.getElementById('renderBtn').addEventListener('click', renderMermaid);
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    sourceEl.value = '';
+    sampleSelect.value = 'blank';
+    persist();
+    renderMermaid();
+  });
+  document.getElementById('downloadSvgBtn').addEventListener('click', downloadSvg);
+  document.getElementById('downloadPngBtn').addEventListener('click', downloadPng);
+  document.getElementById('copySvgBtn').addEventListener('click', copySvg);
+
+  [themeSelect, widthInput, scaleInput, bgInput].forEach((control) => {
+    control.addEventListener('change', () => {
+      applyPreviewSettings();
+      persist();
+      if (control === themeSelect) {
+        renderMermaid();
+      }
+    });
+    control.addEventListener('input', () => {
+      applyPreviewSettings();
+      persist();
+    });
+  });
+
+  sourceEl.addEventListener('input', () => {
+    sampleSelect.value = 'last';
+    persist();
+  });
+
+  splitter.addEventListener('pointerdown', (event) => {
+    isDraggingSplit = true;
+    splitter.setPointerCapture(event.pointerId);
+    document.body.classList.add('is-resizing');
+    updateSplitFromClientX(event.clientX);
+    event.preventDefault();
+  });
+
+  splitter.addEventListener('pointermove', (event) => {
+    if (!isDraggingSplit) {
+      return;
+    }
+    updateSplitFromClientX(event.clientX);
+    persist();
+  });
+
+  splitter.addEventListener('pointerup', (event) => {
+    isDraggingSplit = false;
+    document.body.classList.remove('is-resizing');
+    splitter.releasePointerCapture(event.pointerId);
+    persist();
+  });
+
+  splitter.addEventListener('pointercancel', () => {
+    isDraggingSplit = false;
+    document.body.classList.remove('is-resizing');
+    persist();
+  });
+
+  splitter.addEventListener('keydown', (event) => {
+    const step = event.shiftKey ? 5 : 1;
+    if (event.key === 'ArrowLeft') {
+      applySplit(splitPercent - step);
+    } else if (event.key === 'ArrowRight') {
+      applySplit(splitPercent + step);
+    } else if (event.key === 'Home') {
+      applySplit(25);
+    } else if (event.key === 'End') {
+      applySplit(75);
+    } else {
+      return;
+    }
+    persist();
+    event.preventDefault();
+  });
+
+  restore();
+  renderMermaid();
+})();
