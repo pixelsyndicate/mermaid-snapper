@@ -21,8 +21,8 @@ describe('bundled Mermaid samples', () => {
     mermaid.initialize({
       startOnLoad: false,
       securityLevel: 'loose',
+      htmlLabels: true,
       flowchart: {
-        htmlLabels: true,
         useMaxWidth: true
       },
       sequence: {
@@ -45,5 +45,16 @@ describe('bundled Mermaid samples', () => {
         source: expect.not.stringMatching(/<\/?[a-z][^>]*>/i)
       });
     });
+  });
+
+  test.each(['classic', 'neo', 'handDrawn'])('simple flowchart parses with %s look config', async (look) => {
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'loose',
+      htmlLabels: true,
+      look
+    });
+
+    await expect(mermaid.parse('flowchart TD\n  A["Start"] --> B["Finish"]', { suppressErrors: false })).resolves.toBeTruthy();
   });
 });

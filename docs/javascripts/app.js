@@ -11,6 +11,7 @@
   const storageKeys = {
     source: 'mermaid-helper-source',
     theme: 'mermaid-helper-theme',
+    look: 'mermaid-helper-look',
     width: 'mermaid-helper-width',
     scale: 'mermaid-helper-scale',
     background: 'mermaid-helper-background',
@@ -22,6 +23,7 @@
   const sourceEl = document.getElementById('source');
   const sampleSelect = document.getElementById('sampleSelect');
   const themeSelect = document.getElementById('themeSelect');
+  const lookSelect = document.getElementById('lookSelect');
   const widthInput = document.getElementById('widthInput');
   const scaleInput = document.getElementById('scaleInput');
   const bgInput = document.getElementById('bgInput');
@@ -143,6 +145,7 @@
   function persist() {
     localStorage.setItem(storageKeys.source, sourceEl.value);
     localStorage.setItem(storageKeys.theme, themeSelect.value);
+    localStorage.setItem(storageKeys.look, lookSelect.value);
     localStorage.setItem(storageKeys.width, widthInput.value);
     localStorage.setItem(storageKeys.scale, scaleInput.value);
     localStorage.setItem(storageKeys.background, bgInput.value);
@@ -152,8 +155,10 @@
 
   function restore() {
     const savedSource = localStorage.getItem(storageKeys.source);
+    const savedLook = localStorage.getItem(storageKeys.look);
     sourceEl.value = savedSource || samples.dashboard;
     themeSelect.value = localStorage.getItem(storageKeys.theme) || 'default';
+    lookSelect.value = savedLook && savedLook !== 'default' ? savedLook : 'classic';
     widthInput.value = localStorage.getItem(storageKeys.width) || '960';
     scaleInput.value = localStorage.getItem(storageKeys.scale) || '100';
     bgInput.value = localStorage.getItem(storageKeys.background) || '#ffffff';
@@ -165,18 +170,21 @@
   }
 
   function getMermaidConfig(htmlLabels) {
-    return {
+    const config = {
       startOnLoad: false,
       securityLevel: 'loose',
       theme: themeSelect.value,
+      look: lookSelect.value,
+      htmlLabels,
       flowchart: {
-        htmlLabels,
         useMaxWidth: true
       },
       sequence: {
         useMaxWidth: true
       }
     };
+
+    return config;
   }
 
   async function renderMermaid() {
@@ -387,11 +395,11 @@
   pngButton.addEventListener('click', downloadPng);
   document.getElementById('copySvgBtn').addEventListener('click', copySvg);
 
-  [themeSelect, widthInput, scaleInput, bgInput].forEach((control) => {
+  [themeSelect, lookSelect, widthInput, scaleInput, bgInput].forEach((control) => {
     control.addEventListener('change', () => {
       applyPreviewSettings();
       persist();
-      if (control === themeSelect) {
+      if (control === themeSelect || control === lookSelect) {
         renderMermaid();
       }
     });

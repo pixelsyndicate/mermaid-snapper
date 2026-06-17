@@ -199,11 +199,11 @@ main {
   line-height: 1;
 }
 
-.output-controls {
+.display-options {
   flex: 1 1 420px;
 }
 
-.render-controls {
+.diagram-options {
   flex: 0 0 auto;
 }
 
@@ -453,7 +453,7 @@ body.is-resizing .splitter::before {
     padding: 8px;
   }
 
-  .output-controls {
+  .display-options {
     flex-basis: 100%;
   }
 

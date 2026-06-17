@@ -72,11 +72,21 @@ describe('static GitHub Pages-ready site', () => {
     expect(versionMatch[1]).toBe(dependencyVersion);
   });
 
-  test('output controls are grouped separately from Mermaid render theme', () => {
+  test('diagram and display controls are grouped separately', () => {
     const html = readSiteFile('index.html');
 
-    expect(html).toContain('<fieldset class="control-group output-controls">');
-    expect(html).toContain('<legend>Output</legend>');
+    expect(html).toContain('<fieldset class="control-group diagram-options">');
+    expect(html).toContain('<legend>Diagram options</legend>');
+    expect(html).toContain('for="themeSelect">Theme</label>');
+    expect(html).toContain('for="lookSelect">Look</label>');
+    expect(html).toContain('<select id="lookSelect">');
+    expect(html).toContain('<option value="classic">Classic</option>');
+    expect(html).toContain('<option value="neo">Neo</option>');
+    expect(html).toContain('<option value="handDrawn">Hand drawn</option>');
+    expect(html.match(/<select id="lookSelect">([\s\S]*?)<\/select>/)[1]).not.toContain('value="default"');
+    expect(html).not.toContain('id="layoutSelect"');
+    expect(html).toContain('<fieldset class="control-group display-options">');
+    expect(html).toContain('<legend>Display options</legend>');
     expect(html).toContain('for="widthInput">Width</label>');
     expect(html).toContain('for="scaleInput">Scale</label>');
     expect(html).toContain('for="bgInput">Background</label>');
@@ -137,5 +147,18 @@ describe('static GitHub Pages-ready site', () => {
     expect(appJs).toContain('toDataURL is blocked for security');
     expect(css).toContain('button:disabled');
     expect(css).toContain('cursor: not-allowed;');
+  });
+
+  test('Mermaid look selector is persisted and passed into render config', () => {
+    const appJs = readSiteFile('javascripts/app.js');
+
+    expect(appJs).toContain("look: 'mermaid-helper-look'");
+    expect(appJs).toContain("const lookSelect = document.getElementById('lookSelect');");
+    expect(appJs).toContain('localStorage.setItem(storageKeys.look, lookSelect.value);');
+    expect(appJs).toContain("lookSelect.value = savedLook && savedLook !== 'default' ? savedLook : 'classic';");
+    expect(appJs).toContain('look: lookSelect.value');
+    expect(appJs).toContain('control === themeSelect || control === lookSelect');
+    expect(appJs).not.toContain("if (lookSelect.value !== 'default')");
+    expect(appJs).not.toContain('layoutSelect');
   });
 });

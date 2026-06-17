@@ -75,7 +75,9 @@
 
       <section class="panel preview-panel" aria-label="Rendered Mermaid preview">
         <div class="preview-toolbar">
-          <div class="controls render-controls">
+          <fieldset class="control-group diagram-options">
+            <legend>Diagram options</legend>
+            <div class="controls">
             <label for="themeSelect">Theme</label>
             <select id="themeSelect">
               <option value="default">Default</option>
@@ -84,10 +86,18 @@
               <option value="forest">Forest</option>
               <option value="dark">Dark</option>
             </select>
-          </div>
 
-          <fieldset class="control-group output-controls">
-            <legend>Output</legend>
+            <label for="lookSelect">Look</label>
+            <select id="lookSelect">
+              <option value="classic">Classic</option>
+              <option value="neo">Neo</option>
+              <option value="handDrawn">Hand drawn</option>
+            </select>
+            </div>
+          </fieldset>
+
+          <fieldset class="control-group display-options">
+            <legend>Display options</legend>
             <div class="controls">
             <label for="widthInput">Width</label>
             <input id="widthInput" type="number" min="360" max="2400" step="20" value="960">
