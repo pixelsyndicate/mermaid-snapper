@@ -14,10 +14,21 @@
         <img src="./images/favicon.svg" alt="Mermaid Snapper logo" class="logo">
       </div>
       <div class="header-title">
-        <h1>Mermaid Snapper</h1>
-        <p>test, preview and capture images using mermaid.js</p>
+        <h1>Mermaid Snapper <span class="app-version">v0.2.0</span></h1>
+        <p>test, preview and capture mermaid.js diagrams</p>
       </div>
-      <a class="version" href="https://mermaid.js.org/intro/" target="_blank" rel="noopener noreferrer">Mermaid 11.15.0</a>
+      <div class="header-actions">
+        <button
+          class="icon-button help-button"
+          id="helpBtn"
+          type="button"
+          aria-label="Open help and about information"
+          aria-haspopup="dialog"
+          aria-controls="helpDialog"
+          aria-expanded="false"
+        >?</button>
+        <a class="version" href="https://mermaid.js.org/intro/" target="_blank" rel="noopener noreferrer">Mermaid 11.15.0</a>
+      </div>
     </header>
 
     <main>
@@ -126,6 +137,68 @@
         </div>
       </section>
     </main>
+  </div>
+
+  <div class="modal-backdrop" id="helpBackdrop" hidden>
+    <section
+      class="modal"
+      id="helpDialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="helpTitle"
+      tabindex="-1"
+    >
+      <div class="modal-head">
+        <h2 id="helpTitle">About Mermaid Snapper</h2>
+        <button class="icon-button" id="helpCloseBtn" type="button" aria-label="Close help">x</button>
+      </div>
+      <div class="modal-body">
+        <div class="about-identity">
+          <img src="./images/favicon.svg" alt="" class="about-logo">
+          <h3>Mermaid Snapper</h3>
+          <p>test, preview and capture mermaid.js diagrams</p>
+        </div>
+
+        <dl class="about-meta">
+          <div>
+            <dt>App version</dt>
+            <dd>v0.2.0</dd>
+          </div>
+          <div>
+            <dt>Mermaid library</dt>
+            <dd>11.15.0</dd>
+          </div>
+          <div>
+            <dt>App type</dt>
+            <dd>Static browser app</dd>
+          </div>
+        </dl>
+
+        <section>
+          <h3>What It Does</h3>
+          <p>Render Mermaid source from pasted code or bundled samples, then adjust Theme, Look, Width, Scale, and Background for preview and capture.</p>
+        </section>
+
+        <section>
+          <h3>Exports</h3>
+          <p>SVG copy and download use the rendered diagram directly. PNG export may be disabled when browser security blocks SVG-to-canvas export.</p>
+        </section>
+
+        <div class="about-links">
+          <a href="https://mermaid.js.org/intro/" target="_blank" rel="noopener noreferrer">Mermaid docs</a>
+          <a href="https://github.com/pixelsyndicate/mermaid-snapper" target="_blank" rel="noopener noreferrer">GitHub repository</a>
+          <a href="https://pixelsyndicate.github.io/mermaid-snapper/" target="_blank" rel="noopener noreferrer">GitHub Pages site</a>
+        </div>
+
+        <p class="about-credit">
+          <a href="https://openai.com/codex/" target="_blank" rel="noopener noreferrer">vibe-coded with CODEX by OpenAI</a>
+        </p>
+
+        <div class="modal-actions">
+          <button id="helpOkBtn" type="button">OK</button>
+        </div>
+      </div>
+    </section>
   </div>
 
   <script src="./vendor/mermaid/mermaid.min.js"></script>

@@ -57,7 +57,10 @@ describe('static GitHub Pages-ready site', () => {
   test('header includes Mermaid documentation link', () => {
     const html = readSiteFile('index.html');
 
-    expect(html).toContain('test, preview and capture images using');
+    expect(html).toContain('test, preview and capture mermaid.js diagrams');
+    expect(html).toContain('id="helpBtn"');
+    expect(html).toContain('aria-controls="helpDialog"');
+    expect(html).toContain('aria-haspopup="dialog"');
     expect(html).toContain(
       '<a class="version" href="https://mermaid.js.org/intro/" target="_blank" rel="noopener noreferrer">Mermaid 11.15.0</a>'
     );
@@ -70,6 +73,23 @@ describe('static GitHub Pages-ready site', () => {
 
     expect(versionMatch).not.toBeNull();
     expect(versionMatch[1]).toBe(dependencyVersion);
+  });
+
+  test('app version surfaces match package metadata', () => {
+    const html = readSiteFile('index.html');
+    const readRootFile = (relativePath) => fs.readFileSync(path.join(__dirname, '..', relativePath), 'utf8');
+    const packageLock = require('../package-lock.json');
+    const readme = readRootFile('README.md');
+    const changelog = readRootFile('CHANGELOG.md');
+    const version = packageJson.version;
+
+    expect(packageLock.version).toBe(version);
+    expect(packageLock.packages[''].version).toBe(version);
+    expect(html).toContain(`<span class="app-version">v${version}</span>`);
+    expect(html).toContain(`<dd>v${version}</dd>`);
+    expect(readme).toContain(`Current app version: \`${version}\``);
+    expect(readme).toContain('[CHANGELOG.md](CHANGELOG.md)');
+    expect(changelog).toContain(`## ${version} - `);
   });
 
   test('diagram and display controls are grouped separately', () => {
@@ -160,5 +180,36 @@ describe('static GitHub Pages-ready site', () => {
     expect(appJs).toContain('control === themeSelect || control === lookSelect');
     expect(appJs).not.toContain("if (lookSelect.value !== 'default')");
     expect(appJs).not.toContain('layoutSelect');
+  });
+
+  test('help dialog is available from the header and remains visible in compact layouts', () => {
+    const html = readSiteFile('index.html');
+    const css = readSiteFile('stylesheets/app.css');
+    const appJs = readSiteFile('javascripts/app.js');
+
+    expect(html).toContain('id="helpBackdrop" hidden');
+    expect(html).toContain('id="helpDialog"');
+    expect(html).toContain('role="dialog"');
+    expect(html).toContain('aria-modal="true"');
+    expect(html).toContain('About Mermaid Snapper');
+    expect(html).toContain('App version');
+    expect(html).toContain('Mermaid library');
+    expect(html).toContain('Static browser app');
+    expect(html).toContain('Render Mermaid source from pasted code or bundled samples');
+    expect(html).toContain('PNG export may be disabled when browser security blocks SVG-to-canvas export.');
+    expect(html).toContain('https://github.com/pixelsyndicate/mermaid-snapper');
+    expect(html).toContain('https://pixelsyndicate.github.io/mermaid-snapper/');
+    expect(html).toContain('https://openai.com/codex/');
+    expect(html).toContain('vibe-coded with CODEX by OpenAI');
+    expect(html).toContain('id="helpOkBtn"');
+    expect(css).toContain('.modal-backdrop');
+    expect(css).toContain('.modal-backdrop[hidden]');
+    expect(css).toContain('.about-credit');
+    expect(css).toContain('.header-actions');
+    expect(appJs).toContain("const helpButton = document.getElementById('helpBtn');");
+    expect(appJs).toContain("const helpOkButton = document.getElementById('helpOkBtn');");
+    expect(appJs).toContain('function openHelpDialog()');
+    expect(appJs).toContain('function closeHelpDialog()');
+    expect(appJs).toContain("event.key === 'Escape'");
   });
 });

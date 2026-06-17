@@ -33,6 +33,11 @@
   const errorEl = document.getElementById('error');
   const statusEl = document.getElementById('status');
   const pngButton = document.getElementById('downloadPngBtn');
+  const helpButton = document.getElementById('helpBtn');
+  const helpBackdrop = document.getElementById('helpBackdrop');
+  const helpDialog = document.getElementById('helpDialog');
+  const helpCloseButton = document.getElementById('helpCloseBtn');
+  const helpOkButton = document.getElementById('helpOkBtn');
 
   let currentSvgText = '';
   let renderCount = 0;
@@ -140,6 +145,18 @@
 
   function refreshPngBlockedStatus() {
     setStatus(lastRenderedStatus ? `${lastRenderedStatus}. ${pngExportSupport.reason}` : pngExportSupport.reason);
+  }
+
+  function openHelpDialog() {
+    helpBackdrop.hidden = false;
+    helpButton.setAttribute('aria-expanded', 'true');
+    helpDialog.focus();
+  }
+
+  function closeHelpDialog() {
+    helpBackdrop.hidden = true;
+    helpButton.setAttribute('aria-expanded', 'false');
+    helpButton.focus();
   }
 
   function persist() {
@@ -394,6 +411,20 @@
   document.getElementById('downloadSvgBtn').addEventListener('click', downloadSvg);
   pngButton.addEventListener('click', downloadPng);
   document.getElementById('copySvgBtn').addEventListener('click', copySvg);
+  helpButton.addEventListener('click', openHelpDialog);
+  helpCloseButton.addEventListener('click', closeHelpDialog);
+  helpOkButton.addEventListener('click', closeHelpDialog);
+  helpBackdrop.addEventListener('click', (event) => {
+    if (event.target === helpBackdrop) {
+      closeHelpDialog();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !helpBackdrop.hidden) {
+      closeHelpDialog();
+    }
+  });
 
   [themeSelect, lookSelect, widthInput, scaleInput, bgInput].forEach((control) => {
     control.addEventListener('change', () => {

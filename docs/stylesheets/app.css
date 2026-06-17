@@ -86,6 +86,13 @@ h1 {
   letter-spacing: 0;
 }
 
+.app-version {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 .header-title {
   flex: 1 1 auto;
   display: flex;
@@ -111,6 +118,13 @@ h1 {
 .version {
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
+}
+
+.header-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 main {
@@ -248,6 +262,21 @@ button {
 button:hover {
   border-color: #9bb1cf;
   background: #f8fbff;
+}
+
+.icon-button {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  border-radius: 999px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.help-button {
+  color: var(--accent);
 }
 
 button:disabled,
@@ -401,6 +430,133 @@ body.is-resizing .splitter::before {
   border: 0;
 }
 
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(15, 23, 42, 0.38);
+}
+
+.modal-backdrop[hidden] {
+  display: none;
+}
+
+.modal {
+  width: min(560px, 100%);
+  max-height: min(680px, calc(100vh - 36px));
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-2);
+}
+
+.modal h2,
+.modal h3 {
+  margin: 0;
+  letter-spacing: 0;
+}
+
+.modal h2 {
+  font-size: 17px;
+}
+
+.modal h3 {
+  font-size: 13px;
+}
+
+.modal-body {
+  overflow: auto;
+  padding: 26px 34px 20px;
+  text-align: center;
+}
+
+.modal-body section + section {
+  margin-top: 14px;
+}
+
+.modal-body p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.about-identity {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.about-logo {
+  width: 96px;
+  height: auto;
+}
+
+.about-identity h3 {
+  font-size: 22px;
+}
+
+.about-identity p {
+  max-width: 360px;
+}
+
+.about-meta {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 20px;
+}
+
+.about-meta div {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.about-meta dt {
+  font-weight: 700;
+}
+
+.about-meta dd {
+  margin: 0;
+}
+
+.about-links {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  font-size: 13px;
+}
+
+.about-credit {
+  margin-top: 22px;
+  font-size: 11px;
+  font-style: italic;
+}
+
+.modal-actions {
+  margin-top: 18px;
+}
+
 @media (max-width: 991.98px) {
   main {
     grid-template-columns: 1fr;
@@ -511,6 +667,10 @@ body.is-resizing .splitter::before {
   .header-title p,
   .version {
     display: none;
+  }
+
+  .header-actions {
+    margin-left: auto;
   }
 
   h1 {
