@@ -4,7 +4,7 @@ Static browser app for rendering Mermaid source into a clean preview that can be
 
 Open the hosted app: <https://pixelsyndicate.github.io/mermaid-snapper/>
 
-The app has no Express.js runtime. It is plain HTML, CSS, and JavaScript under `docs/`, with Node.js used only for dependency management, tests, and refreshing vendored assets.
+The app is plain HTML, CSS, and JavaScript under `docs/`, with Node.js used only for dependency management, tests, and refreshing vendored assets.
 
 ## Current Features
 
@@ -62,6 +62,16 @@ Watch mode:
 ```powershell
 npm run test:watch
 ```
+
+The Jest suite currently checks:
+
+- Static hosting requirements, including relative asset paths, `docs/.nojekyll`, the vendored Mermaid bundle, and absence of old internal/server markers.
+- Dependency drift between the installed Mermaid package, the vendored `docs/vendor/mermaid/mermaid.min.js` asset, and the version displayed in the app header.
+- Client utilities used by the browser app, including fenced-code cleanup, PNG export source preparation, SVG download blob metadata, and shared download constants.
+- PNG export preparation for every bundled sample, ensuring HTML labels are converted before rasterization.
+- Mermaid parser validation for every bundled sample in `docs/javascripts/samples.js`.
+
+The Mermaid parser tests run in Jest with `jsdom` and Node's experimental VM modules enabled by the npm scripts. Browser-only behaviors such as the actual clipboard write, native file download prompt, and canvas security result for PNG export should still be verified manually after UI changes.
 
 ## Static Hosting Notes
 

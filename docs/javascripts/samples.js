@@ -189,14 +189,14 @@ quadrantChart
   requirement: `\`\`\`mermaid
 requirementDiagram
   requirement image_capture {
-    id: REQ-001
+    id: "REQ-001"
     text: The helper shall render Mermaid diagrams from local HTML without a web host.
     risk: Medium
     verifymethod: Test
   }
 
   functionalRequirement export_options {
-    id: REQ-002
+    id: "REQ-002"
     text: The helper shall export rendered diagrams as SVG and PNG.
     risk: Low
     verifymethod: Demonstration

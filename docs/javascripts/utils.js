@@ -7,6 +7,15 @@
 
   root.MermaidHelperUtils = utilities;
 })(typeof window !== 'undefined' ? window : globalThis, function createUtilities() {
+  const SVG_DOWNLOAD = {
+    filename: 'mermaid-diagram.svg',
+    mimeType: 'image/svg+xml;charset=utf-8'
+  };
+  const PNG_DOWNLOAD = {
+    filename: 'mermaid-diagram.png',
+    mimeType: 'image/png'
+  };
+
   function stripCodeFence(source) {
     const trimmed = String(source || '').trim();
     const match = trimmed.match(/^```\s*(?:mermaid)?\s*([\s\S]*?)\s*```$/i);
@@ -29,9 +38,21 @@
       .replace(/<\/?[^>]+>/g, '');
   }
 
+  function createPngExportSource(source) {
+    return prepareSourceForPngExport(stripCodeFence(source));
+  }
+
+  function createSvgDownloadBlob(svgText) {
+    return new Blob([String(svgText || '')], { type: SVG_DOWNLOAD.mimeType });
+  }
+
   return {
+    createPngExportSource,
+    createSvgDownloadBlob,
     clampNumber,
+    PNG_DOWNLOAD,
     prepareSourceForPngExport,
+    SVG_DOWNLOAD,
     stripCodeFence
   };
 });

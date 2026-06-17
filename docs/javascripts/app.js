@@ -1,5 +1,12 @@
 (function bootMermaidHelper() {
-  const { clampNumber, prepareSourceForPngExport, stripCodeFence } = window.MermaidHelperUtils;
+  const {
+    clampNumber,
+    createPngExportSource,
+    createSvgDownloadBlob,
+    PNG_DOWNLOAD,
+    SVG_DOWNLOAD,
+    stripCodeFence
+  } = window.MermaidHelperUtils;
   const samples = window.MermaidHelperSamples;
   const storageKeys = {
     source: 'mermaid-helper-source',
@@ -201,7 +208,7 @@
   function downloadSvg() {
     try {
       const svgText = getSerializedSvg();
-      downloadBlob(new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' }), 'mermaid-diagram.svg');
+      downloadBlob(createSvgDownloadBlob(svgText), SVG_DOWNLOAD.filename);
       setStatus('SVG downloaded');
     } catch (error) {
       setError(error.message);
@@ -225,7 +232,7 @@
 
       setError('');
       setStatus('Preparing PNG...');
-      const exportSvg = await renderSvgForPngExport(prepareSourceForPngExport(source));
+      const exportSvg = await renderSvgForPngExport(createPngExportSource(source));
       const svgText = getSerializedSvg(exportSvg);
       const svgDoc = new DOMParser().parseFromString(svgText, 'image/svg+xml').documentElement;
       const viewBox = svgDoc.getAttribute('viewBox');
@@ -235,7 +242,7 @@
       const width = Math.max(1, Math.ceil(viewBoxParts[2] || parseFloat(svgDoc.getAttribute('width')) || rect.width));
       const height = Math.max(1, Math.ceil(viewBoxParts[3] || parseFloat(svgDoc.getAttribute('height')) || rect.height));
       const canvas = await drawSvgTextToCanvas(svgText, width, height, 2);
-      triggerDownload(canvas.toDataURL('image/png'), 'mermaid-diagram.png');
+      triggerDownload(canvas.toDataURL(PNG_DOWNLOAD.mimeType), PNG_DOWNLOAD.filename);
       setStatus('PNG downloaded');
     } catch (error) {
       setError(error.message);

@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
+const packageJson = require('../package.json');
 const samples = require('../docs/javascripts/samples');
 
 const siteRoot = path.join(__dirname, '..', 'docs');
@@ -27,6 +28,7 @@ describe('static GitHub Pages-ready site', () => {
 
     expect(assetPaths).toEqual(expect.arrayContaining([
       'stylesheets/app.css',
+      'images/favicon.svg',
       'vendor/mermaid/mermaid.min.js',
       'javascripts/utils.js',
       'javascripts/samples.js',
@@ -36,6 +38,25 @@ describe('static GitHub Pages-ready site', () => {
     assetPaths.forEach((assetPath) => {
       expect(fs.existsSync(path.join(siteRoot, assetPath))).toBe(true);
     });
+  });
+
+  test('Mermaid is vendored for static hosting', () => {
+    const html = readSiteFile('index.html');
+    const vendoredMermaidPath = path.join(siteRoot, 'vendor', 'mermaid', 'mermaid.min.js');
+
+    expect(html).toContain('./vendor/mermaid/mermaid.min.js');
+    expect(html).not.toMatch(/https?:\/\/[^"]*mermaid/i);
+    expect(fs.existsSync(vendoredMermaidPath)).toBe(true);
+    expect(fs.statSync(vendoredMermaidPath).size).toBeGreaterThan(100000);
+  });
+
+  test('header Mermaid version matches package dependency', () => {
+    const html = readSiteFile('index.html');
+    const versionMatch = html.match(/<div class="version">Mermaid ([^<]+)<\/div>/);
+    const dependencyVersion = packageJson.dependencies.mermaid.replace(/^[^\d]*/, '');
+
+    expect(versionMatch).not.toBeNull();
+    expect(versionMatch[1]).toBe(dependencyVersion);
   });
 
   test('sample dropdown options are backed by the sample catalog', () => {

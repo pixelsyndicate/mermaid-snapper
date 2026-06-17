@@ -8,14 +8,15 @@
   },
   "scripts": {
     "prepare:pages": "node scripts/prepare-pages.js",
-    "test": "jest",
-    "test:watch": "jest --watch"
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --watch"
   },
   "dependencies": {
     "mermaid": "^11.15.0"
   },
   "devDependencies": {
-    "jest": "^30.3.0"
+    "jest": "^30.3.0",
+    "jest-environment-jsdom": "^30.4.1"
   },
   "jest": {
     "testEnvironment": "node",
