@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mermaid Screenshot Helper</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cpath%20fill%3D%22%2306131e%22%20d%3D%22M15%2010h34l6%2044-40%205L9%2015z%22%2F%3E%3Cpath%20fill%3D%22%23fbf9f3%22%20d%3D%22M17%2014h28l5%2034-30%204-5-34z%22%2F%3E%3Cpath%20fill%3D%22%23006db4%22%20d%3D%22M19%2019h25l3%2022-25%203z%22%2F%3E%3Cpath%20fill%3D%22%2343d7ec%22%20d%3D%22M22%2037c8%204%2017%202%2024-3-5%208-15%2013-25%209z%22%2F%3E%3Cpath%20fill%3D%22%2306131e%22%20d%3D%22M37%208c6%201%206%207%204%2012%205%202%208%207%208%2013-4-3-7-3-10-1-3%205-8%2011-17%2014%205-6%208-12%2010-18-5%203-9%204-13%202%205-2%2010-5%2013-10%201-6%200-10%205-12z%22%2F%3E%3C%2Fsvg%3E">
+  <title>Mermaid Snapper</title>
+  <link rel="icon" href="./images/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./stylesheets/app.css">
 </head>
 <body>
@@ -52,7 +52,7 @@
         <label class="sr-only" for="source">Mermaid source</label>
         <textarea id="source" spellcheck="false"></textarea>
 
-        <div>
+        <div class="editor-alerts">
           <div id="error" class="error" role="alert"></div>
           <div class="panel-foot">
             <div class="status" id="status">Ready</div>
@@ -75,7 +75,7 @@
 
       <section class="panel preview-panel" aria-label="Rendered Mermaid preview">
         <div class="preview-toolbar">
-          <div class="controls">
+          <div class="controls render-controls">
             <label for="themeSelect">Theme</label>
             <select id="themeSelect">
               <option value="default">Default</option>
@@ -84,7 +84,11 @@
               <option value="forest">Forest</option>
               <option value="dark">Dark</option>
             </select>
+          </div>
 
+          <fieldset class="control-group output-controls">
+            <legend>Output</legend>
+            <div class="controls">
             <label for="widthInput">Width</label>
             <input id="widthInput" type="number" min="360" max="2400" step="20" value="960">
 
@@ -93,9 +97,10 @@
 
             <label for="bgInput">Background</label>
             <input id="bgInput" type="color" value="#ffffff">
-          </div>
+            </div>
+          </fieldset>
 
-          <div class="controls">
+          <div class="controls export-controls">
             <button id="copySvgBtn" type="button">Copy SVG</button>
             <button id="downloadSvgBtn" type="button">Download SVG</button>
             <button id="downloadPngBtn" type="button">Download PNG</button>

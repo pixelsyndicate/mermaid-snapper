@@ -14,7 +14,8 @@ describe('static GitHub Pages-ready site', () => {
   test('index.html is the static app entrypoint', () => {
     const html = readSiteFile('index.html');
 
-    expect(html).toContain('<title>Mermaid Screenshot Helper</title>');
+    expect(html).toContain('<title>Mermaid Snapper</title>');
+    expect(html).toContain('<link rel="icon" href="./images/favicon.svg" type="image/svg+xml">');
     expect(html).toContain('./vendor/mermaid/mermaid.min.js');
     expect(html).toContain('./javascripts/app.js');
     expect(html).not.toContain('/healthz');
@@ -71,6 +72,38 @@ describe('static GitHub Pages-ready site', () => {
     expect(versionMatch[1]).toBe(dependencyVersion);
   });
 
+  test('output controls are grouped separately from Mermaid render theme', () => {
+    const html = readSiteFile('index.html');
+
+    expect(html).toContain('<fieldset class="control-group output-controls">');
+    expect(html).toContain('<legend>Output</legend>');
+    expect(html).toContain('for="widthInput">Width</label>');
+    expect(html).toContain('for="scaleInput">Scale</label>');
+    expect(html).toContain('for="bgInput">Background</label>');
+  });
+
+  test('stacked layout keeps editor alerts visible below the textarea', () => {
+    const html = readSiteFile('index.html');
+    const css = readSiteFile('stylesheets/app.css');
+    const js = readSiteFile('javascripts/app.js');
+
+    expect(html).toContain('<div class="editor-alerts">');
+    expect(html).toContain('<div class="controls export-controls">');
+    expect(css).toContain('sm 576px, md 768px, lg 992px, xl 1200px, xxl 1400px');
+    expect(css).toContain('--stacked-editor-height: 340px;');
+    expect(css).toContain('@media (max-width: 991.98px)');
+    expect(css).toContain('grid-template-rows: var(--stacked-editor-height) 18px minmax(260px, 1fr);');
+    expect(css).toContain('cursor: row-resize;');
+    expect(css).toContain('background: linear-gradient(180deg, #d8e3f1, #eef4fb);');
+    expect(css).toContain('background: var(--accent);');
+    expect(css).toContain('@media (max-width: 767.98px)');
+    expect(css).toContain('.header-title p,');
+    expect(css).toContain('.export-controls button');
+    expect(js).toContain("stackedSplit: 'mermaid-helper-stacked-split'");
+    expect(js).toContain('Resize editor and preview rows');
+    expect(js).toContain('function updateSplitFromClientY(clientY)');
+  });
+
   test('sample dropdown options are backed by the sample catalog', () => {
     const html = readSiteFile('index.html');
     const sampleSelectMarkup = html.match(/<select id="sampleSelect">([\s\S]*?)<\/select>/)[1];
@@ -94,5 +127,15 @@ describe('static GitHub Pages-ready site', () => {
     ['BSN', 'APP/RTR', 'Splunk', 'SAP/HANA', 'QAS'].forEach((marker) => {
       expect(sampleText).not.toContain(marker);
     });
+  });
+
+  test('PNG export warning explains browser canvas security blocking', () => {
+    const appJs = readSiteFile('javascripts/app.js');
+    const css = readSiteFile('stylesheets/app.css');
+
+    expect(appJs).toContain('PNG export disabled: this browser taints the canvas after drawing the generated SVG image');
+    expect(appJs).toContain('toDataURL is blocked for security');
+    expect(css).toContain('button:disabled');
+    expect(css).toContain('cursor: not-allowed;');
   });
 });

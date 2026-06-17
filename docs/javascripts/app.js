@@ -14,7 +14,8 @@
     width: 'mermaid-helper-width',
     scale: 'mermaid-helper-scale',
     background: 'mermaid-helper-background',
-    split: 'mermaid-helper-split'
+    split: 'mermaid-helper-split',
+    stackedSplit: 'mermaid-helper-stacked-split'
   };
 
   const mainEl = document.querySelector('main');
@@ -29,12 +30,20 @@
   const diagramEl = document.getElementById('diagram');
   const errorEl = document.getElementById('error');
   const statusEl = document.getElementById('status');
+  const pngButton = document.getElementById('downloadPngBtn');
 
   let currentSvgText = '';
   let renderCount = 0;
   let splitPercent = 42;
+  let stackedEditorHeight = 340;
   let isDraggingSplit = false;
   let isExportingPng = false;
+  let lastRenderedStatus = '';
+  let pngExportSupport = {
+    checked: false,
+    supported: true,
+    reason: ''
+  };
 
   function applyPreviewSettings() {
     const width = clampNumber(widthInput.value, 360, 2400, 960);
@@ -56,10 +65,41 @@
     splitter.setAttribute('aria-valuenow', String(Math.round(splitPercent)));
   }
 
+  function applyStackedSplit(height) {
+    stackedEditorHeight = clampNumber(height, 280, 640, 340);
+    mainEl.style.setProperty('--stacked-editor-height', `${stackedEditorHeight}px`);
+    splitter.setAttribute('aria-valuenow', String(Math.round(stackedEditorHeight)));
+  }
+
+  function isStackedLayout() {
+    return window.matchMedia('(max-width: 991.98px)').matches;
+  }
+
   function updateSplitFromClientX(clientX) {
     const rect = mainEl.getBoundingClientRect();
     const nextPercent = ((clientX - rect.left) / rect.width) * 100;
     applySplit(nextPercent);
+  }
+
+  function updateSplitFromClientY(clientY) {
+    const editorTop = document.querySelector('.editor-panel').getBoundingClientRect().top;
+    applyStackedSplit(clientY - editorTop);
+  }
+
+  function updateSplitterAccessibility() {
+    if (isStackedLayout()) {
+      splitter.setAttribute('aria-label', 'Resize editor and preview rows');
+      splitter.setAttribute('aria-orientation', 'horizontal');
+      splitter.setAttribute('aria-valuemin', '280');
+      splitter.setAttribute('aria-valuemax', '640');
+      splitter.setAttribute('aria-valuenow', String(Math.round(stackedEditorHeight)));
+    } else {
+      splitter.setAttribute('aria-label', 'Resize editor and preview panes');
+      splitter.setAttribute('aria-orientation', 'vertical');
+      splitter.setAttribute('aria-valuemin', '25');
+      splitter.setAttribute('aria-valuemax', '75');
+      splitter.setAttribute('aria-valuenow', String(Math.round(splitPercent)));
+    }
   }
 
   function setError(message) {
@@ -71,6 +111,35 @@
     statusEl.textContent = message;
   }
 
+  function getPngBlockedMessage() {
+    return 'PNG export disabled: this browser taints the canvas after drawing the generated SVG image, so toDataURL is blocked for security.';
+  }
+
+  function isTaintedCanvasError(error) {
+    const message = error && error.message ? error.message : String(error || '');
+    return /tainted canvases|may not be exported|toDataURL|SecurityError/i.test(message);
+  }
+
+  function setPngExportSupport(supported, reason) {
+    pngExportSupport = {
+      checked: true,
+      supported,
+      reason: reason || ''
+    };
+    pngButton.disabled = !supported || isExportingPng;
+    pngButton.title = supported ? '' : pngExportSupport.reason;
+    pngButton.setAttribute('aria-disabled', String(!supported || isExportingPng));
+  }
+
+  function setRenderedStatus() {
+    lastRenderedStatus = `Rendered ${new Date().toLocaleTimeString()}`;
+    setStatus(pngExportSupport.supported ? lastRenderedStatus : `${lastRenderedStatus}. ${pngExportSupport.reason}`);
+  }
+
+  function refreshPngBlockedStatus() {
+    setStatus(lastRenderedStatus ? `${lastRenderedStatus}. ${pngExportSupport.reason}` : pngExportSupport.reason);
+  }
+
   function persist() {
     localStorage.setItem(storageKeys.source, sourceEl.value);
     localStorage.setItem(storageKeys.theme, themeSelect.value);
@@ -78,6 +147,7 @@
     localStorage.setItem(storageKeys.scale, scaleInput.value);
     localStorage.setItem(storageKeys.background, bgInput.value);
     localStorage.setItem(storageKeys.split, String(Math.round(splitPercent)));
+    localStorage.setItem(storageKeys.stackedSplit, String(Math.round(stackedEditorHeight)));
   }
 
   function restore() {
@@ -89,6 +159,8 @@
     bgInput.value = localStorage.getItem(storageKeys.background) || '#ffffff';
     sampleSelect.value = savedSource ? 'last' : 'dashboard';
     applySplit(localStorage.getItem(storageKeys.split) || 42);
+    applyStackedSplit(localStorage.getItem(storageKeys.stackedSplit) || 340);
+    updateSplitterAccessibility();
     applyPreviewSettings();
   }
 
@@ -127,7 +199,8 @@
       const result = await mermaid.render(`mermaid-render-${Date.now()}-${renderCount}`, source);
       currentSvgText = result.svg;
       diagramEl.innerHTML = result.svg;
-      setStatus(`Rendered ${new Date().toLocaleTimeString()}`);
+      setRenderedStatus();
+      detectPngExportSupport(source);
     } catch (error) {
       setError(error && error.message ? error.message : String(error));
       setStatus('Render failed');
@@ -205,6 +278,19 @@
     });
   }
 
+  async function createPngCanvasFromSource(source) {
+    const exportSvg = await renderSvgForPngExport(createPngExportSource(source));
+    const svgText = getSerializedSvg(exportSvg);
+    const svgDoc = new DOMParser().parseFromString(svgText, 'image/svg+xml').documentElement;
+    const viewBox = svgDoc.getAttribute('viewBox');
+    const viewBoxParts = viewBox ? viewBox.split(/\s+/).map(Number) : [];
+    const measuredSvg = getSvgElement();
+    const rect = measuredSvg ? measuredSvg.getBoundingClientRect() : { width: 960, height: 540 };
+    const width = Math.max(1, Math.ceil(viewBoxParts[2] || parseFloat(svgDoc.getAttribute('width')) || rect.width));
+    const height = Math.max(1, Math.ceil(viewBoxParts[3] || parseFloat(svgDoc.getAttribute('height')) || rect.height));
+    return drawSvgTextToCanvas(svgText, width, height, 2);
+  }
+
   function downloadSvg() {
     try {
       const svgText = getSerializedSvg();
@@ -216,12 +302,14 @@
   }
 
   async function downloadPng() {
-    if (isExportingPng) {
+    if (isExportingPng || !pngExportSupport.supported) {
+      if (!pngExportSupport.supported) {
+        setStatus(pngExportSupport.reason);
+      }
       return;
     }
 
     isExportingPng = true;
-    const pngButton = document.getElementById('downloadPngBtn');
     pngButton.disabled = true;
 
     try {
@@ -232,24 +320,42 @@
 
       setError('');
       setStatus('Preparing PNG...');
-      const exportSvg = await renderSvgForPngExport(createPngExportSource(source));
-      const svgText = getSerializedSvg(exportSvg);
-      const svgDoc = new DOMParser().parseFromString(svgText, 'image/svg+xml').documentElement;
-      const viewBox = svgDoc.getAttribute('viewBox');
-      const viewBoxParts = viewBox ? viewBox.split(/\s+/).map(Number) : [];
-      const measuredSvg = getSvgElement();
-      const rect = measuredSvg ? measuredSvg.getBoundingClientRect() : { width: 960, height: 540 };
-      const width = Math.max(1, Math.ceil(viewBoxParts[2] || parseFloat(svgDoc.getAttribute('width')) || rect.width));
-      const height = Math.max(1, Math.ceil(viewBoxParts[3] || parseFloat(svgDoc.getAttribute('height')) || rect.height));
-      const canvas = await drawSvgTextToCanvas(svgText, width, height, 2);
+      const canvas = await createPngCanvasFromSource(source);
       triggerDownload(canvas.toDataURL(PNG_DOWNLOAD.mimeType), PNG_DOWNLOAD.filename);
       setStatus('PNG downloaded');
     } catch (error) {
       setError(error.message);
-      setStatus('PNG export failed');
+      if (isTaintedCanvasError(error)) {
+        setPngExportSupport(false, getPngBlockedMessage());
+        refreshPngBlockedStatus();
+      } else {
+        setStatus('PNG export failed');
+      }
     } finally {
       isExportingPng = false;
-      pngButton.disabled = false;
+      pngButton.disabled = !pngExportSupport.supported;
+      pngButton.setAttribute('aria-disabled', String(!pngExportSupport.supported));
+    }
+  }
+
+  async function detectPngExportSupport(source) {
+    if (!source) {
+      return;
+    }
+
+    try {
+      const canvas = await createPngCanvasFromSource(source);
+      canvas.toDataURL(PNG_DOWNLOAD.mimeType);
+      const wasUnsupported = !pngExportSupport.supported;
+      setPngExportSupport(true, '');
+      if (wasUnsupported && lastRenderedStatus) {
+        setStatus(lastRenderedStatus);
+      }
+    } catch (error) {
+      if (isTaintedCanvasError(error)) {
+        setPngExportSupport(false, getPngBlockedMessage());
+        refreshPngBlockedStatus();
+      }
     }
   }
 
@@ -278,7 +384,7 @@
     renderMermaid();
   });
   document.getElementById('downloadSvgBtn').addEventListener('click', downloadSvg);
-  document.getElementById('downloadPngBtn').addEventListener('click', downloadPng);
+  pngButton.addEventListener('click', downloadPng);
   document.getElementById('copySvgBtn').addEventListener('click', copySvg);
 
   [themeSelect, widthInput, scaleInput, bgInput].forEach((control) => {
@@ -304,7 +410,14 @@
     isDraggingSplit = true;
     splitter.setPointerCapture(event.pointerId);
     document.body.classList.add('is-resizing');
-    updateSplitFromClientX(event.clientX);
+    updateSplitterAccessibility();
+    if (isStackedLayout()) {
+      document.body.classList.add('is-resizing-row');
+      updateSplitFromClientY(event.clientY);
+    } else {
+      document.body.classList.add('is-resizing-col');
+      updateSplitFromClientX(event.clientX);
+    }
     event.preventDefault();
   });
 
@@ -312,13 +425,19 @@
     if (!isDraggingSplit) {
       return;
     }
-    updateSplitFromClientX(event.clientX);
+    if (isStackedLayout()) {
+      updateSplitFromClientY(event.clientY);
+    } else {
+      updateSplitFromClientX(event.clientX);
+    }
     persist();
   });
 
   splitter.addEventListener('pointerup', (event) => {
     isDraggingSplit = false;
     document.body.classList.remove('is-resizing');
+    document.body.classList.remove('is-resizing-col');
+    document.body.classList.remove('is-resizing-row');
     splitter.releasePointerCapture(event.pointerId);
     persist();
   });
@@ -326,25 +445,35 @@
   splitter.addEventListener('pointercancel', () => {
     isDraggingSplit = false;
     document.body.classList.remove('is-resizing');
+    document.body.classList.remove('is-resizing-col');
+    document.body.classList.remove('is-resizing-row');
     persist();
   });
 
   splitter.addEventListener('keydown', (event) => {
-    const step = event.shiftKey ? 5 : 1;
-    if (event.key === 'ArrowLeft') {
+    const stacked = isStackedLayout();
+    const step = event.shiftKey ? (stacked ? 30 : 5) : (stacked ? 10 : 1);
+    if (stacked && event.key === 'ArrowUp') {
+      applyStackedSplit(stackedEditorHeight - step);
+    } else if (stacked && event.key === 'ArrowDown') {
+      applyStackedSplit(stackedEditorHeight + step);
+    } else if (!stacked && event.key === 'ArrowLeft') {
       applySplit(splitPercent - step);
-    } else if (event.key === 'ArrowRight') {
+    } else if (!stacked && event.key === 'ArrowRight') {
       applySplit(splitPercent + step);
     } else if (event.key === 'Home') {
-      applySplit(25);
+      stacked ? applyStackedSplit(280) : applySplit(25);
     } else if (event.key === 'End') {
-      applySplit(75);
+      stacked ? applyStackedSplit(640) : applySplit(75);
     } else {
       return;
     }
+    updateSplitterAccessibility();
     persist();
     event.preventDefault();
   });
+
+  window.addEventListener('resize', updateSplitterAccessibility);
 
   restore();
   renderMermaid();
