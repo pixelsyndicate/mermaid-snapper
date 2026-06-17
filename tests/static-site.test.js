@@ -43,16 +43,28 @@ describe('static GitHub Pages-ready site', () => {
   test('Mermaid is vendored for static hosting', () => {
     const html = readSiteFile('index.html');
     const vendoredMermaidPath = path.join(siteRoot, 'vendor', 'mermaid', 'mermaid.min.js');
+    const scriptSources = [...html.matchAll(/<script src="([^"]+)"/g)].map((match) => match[1]);
 
     expect(html).toContain('./vendor/mermaid/mermaid.min.js');
-    expect(html).not.toMatch(/https?:\/\/[^"]*mermaid/i);
+    expect(scriptSources).not.toEqual(expect.arrayContaining([
+      expect.stringMatching(/https?:\/\/.*mermaid/i)
+    ]));
     expect(fs.existsSync(vendoredMermaidPath)).toBe(true);
     expect(fs.statSync(vendoredMermaidPath).size).toBeGreaterThan(100000);
   });
 
+  test('header includes Mermaid documentation link', () => {
+    const html = readSiteFile('index.html');
+
+    expect(html).toContain('test, preview and capture images using');
+    expect(html).toContain(
+      '<a class="version" href="https://mermaid.js.org/intro/" target="_blank" rel="noopener noreferrer">Mermaid 11.15.0</a>'
+    );
+  });
+
   test('header Mermaid version matches package dependency', () => {
     const html = readSiteFile('index.html');
-    const versionMatch = html.match(/<div class="version">Mermaid ([^<]+)<\/div>/);
+    const versionMatch = html.match(/class="version"[^>]*>Mermaid ([^<]+)<\/a>/);
     const dependencyVersion = packageJson.dependencies.mermaid.replace(/^[^\d]*/, '');
 
     expect(versionMatch).not.toBeNull();

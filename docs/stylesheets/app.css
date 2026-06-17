@@ -72,16 +72,36 @@ header {
 
 h1 {
   margin: 0;
-  flex: 1 1 auto;
   font-size: 18px;
   line-height: 1.2;
   letter-spacing: 0;
+}
+
+.header-title {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+
+.header-title p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
 }
 
 .version,
 .status {
   color: var(--muted);
   font-size: 12px;
+}
+
+.version {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
 }
 
 main {

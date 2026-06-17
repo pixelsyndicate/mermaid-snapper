@@ -37,4 +37,13 @@ describe('bundled Mermaid samples', () => {
       await expect(mermaid.parse(stripCodeFence(source), { suppressErrors: false })).resolves.toBeTruthy();
     }
   );
+
+  test('samples do not rely on raw HTML labels', () => {
+    Object.entries(samples).forEach(([name, source]) => {
+      expect({ name, source: stripCodeFence(source) }).toEqual({
+        name,
+        source: expect.not.stringMatching(/<\/?[a-z][^>]*>/i)
+      });
+    });
+  });
 });

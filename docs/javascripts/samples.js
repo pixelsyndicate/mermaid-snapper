@@ -10,14 +10,22 @@
   return {
   dashboard: `\`\`\`mermaid
 flowchart TD
-  A["Product Analytics Overview<br/>Overall usage, users, platforms, errors, endpoints, response times"]
-  B["User Engagement Detail<br/>Users, calls, errors, response times, platform mix"]
-  C["User Drill-In<br/>One user's utilization, endpoints, platforms, errors, slow calls"]
-  D["Endpoint Detail<br/>Endpoint volume, latency, errors, impacted users"]
-  E["Platform Detail<br/>Web, iOS/mobile, Android, browser usage and health"]
-  F["Error Detail<br/>Failures by user, endpoint, client, and status"]
-  G["Field Extraction Readiness<br/>Verify telemetry field availability and correlation quality"]
-  H["Log Search Window<br/>Batch child-operation analysis for grouped endpoints"]
+  A["\`Product Analytics Overview
+Overall usage, users, platforms, errors, endpoints, response times\`"]
+  B["\`User Engagement Detail
+Users, calls, errors, response times, platform mix\`"]
+  C["\`User Drill-In
+One user's utilization, endpoints, platforms, errors, slow calls\`"]
+  D["\`Endpoint Detail
+Endpoint volume, latency, errors, impacted users\`"]
+  E["\`Platform Detail
+Web, iOS/mobile, Android, browser usage and health\`"]
+  F["\`Error Detail
+Failures by user, endpoint, client, and status\`"]
+  G["\`Field Extraction Readiness
+Verify telemetry field availability and correlation quality\`"]
+  H["\`Log Search Window
+Batch child-operation analysis for grouped endpoints\`"]
 
   A -->|"identity"| C
   A -->|"non-batch endpoint"| D
@@ -41,17 +49,28 @@ flowchart TD
 \`\`\``,
   orders: `\`\`\`mermaid
 flowchart TD
-  A["Customer Order Portal<br/>User starts an order or quote"]
-  B["Identity Service<br/>Authenticate user and load account context"]
-  C["Product Catalog<br/>Search, filter, and select products"]
-  D["Pricing Engine<br/>Apply contract pricing and discounts"]
-  E["Inventory Check<br/>Validate availability by warehouse"]
-  F["Order Review<br/>Confirm items, pricing, shipping, and tax"]
-  G["Payment Authorization<br/>Authorize credit card or account terms"]
-  H["ERP Submission<br/>Create sales order in downstream ERP"]
-  I["Exception Queue<br/>Manual review for failed or risky orders"]
-  J["Confirmation<br/>Email confirmation and tracking details"]
-  K["Ops Dashboard<br/>Monitor volume, failures, latency, and retries"]
+  A["\`Customer Order Portal
+User starts an order or quote\`"]
+  B["\`Identity Service
+Authenticate user and load account context\`"]
+  C["\`Product Catalog
+Search, filter, and select products\`"]
+  D["\`Pricing Engine
+Apply contract pricing and discounts\`"]
+  E["\`Inventory Check
+Validate availability by warehouse\`"]
+  F["\`Order Review
+Confirm items, pricing, shipping, and tax\`"]
+  G["\`Payment Authorization
+Authorize credit card or account terms\`"]
+  H["\`ERP Submission
+Create sales order in downstream ERP\`"]
+  I["\`Exception Queue
+Manual review for failed or risky orders\`"]
+  J["\`Confirmation
+Email confirmation and tracking details\`"]
+  K["\`Ops Dashboard
+Monitor volume, failures, latency, and retries\`"]
 
   A -->|"login required"| B
   B -->|"authenticated"| C
@@ -72,23 +91,40 @@ flowchart TD
 \`\`\``,
   flowchart: `\`\`\`mermaid
 flowchart TD
-    A["<b>Intake Trigger</b><br/>Business request, Jira, Confluence note, incident, consumer need"] --> B["<b>Plan Discovery</b><br/>Identify stakeholders, source systems, likely SMEs, decision owners"]
-    B --> C["<b>Business Elicitation</b><br/>Interviews, workflow review, examples, current workaround, success outcome"]
-    C --> D["<b>First Requirement Draft</b><br/>Purpose, users, business outcome, scope, assumptions, open questions"]
-    D --> E{"<b>API / Data / Integration</b><br/>technical risk?"}
-    E -- "Low risk / known pattern" --> F["<b>Contract Drafting</b><br/>Endpoint, inputs, outputs, errors, examples, acceptance criteria"]
-    E -- "Data source / integration unknown" --> G["<b>Technical Discovery Branch</b><br/>Developer / tech lead / data owner validates source truth"]
-    G --> H["<b>Technical Evidence</b><br/>Tables/views, joins, formulas, virtual tables, synonyms, grants, raw query proof, sample records"]
+    A["\`**Intake Trigger**
+Business request, Jira, Confluence note, incident, consumer need\`"] --> B["\`**Plan Discovery**
+Identify stakeholders, source systems, likely SMEs, decision owners\`"]
+    B --> C["\`**Business Elicitation**
+Interviews, workflow review, examples, current workaround, success outcome\`"]
+    C --> D["\`**First Requirement Draft**
+Purpose, users, business outcome, scope, assumptions, open questions\`"]
+    D --> E{"\`**API / Data / Integration**
+technical risk?\`"}
+    E -- "Low risk / known pattern" --> F["\`**Contract Drafting**
+Endpoint, inputs, outputs, errors, examples, acceptance criteria\`"]
+    E -- "Data source / integration unknown" --> G["\`**Technical Discovery Branch**
+Developer / tech lead / data owner validates source truth\`"]
+    G --> H["\`**Technical Evidence**
+Tables/views, joins, formulas, virtual tables, synonyms, grants, raw query proof, sample records\`"]
     H --> F
-    F --> I["<b>Testability Review</b><br/>QA/test owner checks examples, edge cases, no-data behavior, invalid-input behavior, acceptance criteria"]
-    I --> J["<b>Business Validation Review</b><br/>Business owner confirms meanings, calculations, sample values, and decision usefulness"]
-    J --> K{"<b>Ready Review</b><br/>Can dev estimate and start<br/>without rediscovering basic truth?"}
-    K -- "No" --> L["<b>Resolve Gaps</b><br/>Clarify scope, add evidence, answer questions, link dependency, or record waiver"]
+    F --> I["\`**Testability Review**
+QA/test owner checks examples, edge cases, no-data behavior, invalid-input behavior, acceptance criteria\`"]
+    I --> J["\`**Business Validation Review**
+Business owner confirms meanings, calculations, sample values, and decision usefulness\`"]
+    J --> K{"\`**Ready Review**
+Can dev estimate and start
+without rediscovering basic truth?\`"}
+    K -- "No" --> L["\`**Resolve Gaps**
+Clarify scope, add evidence, answer questions, link dependency, or record waiver\`"]
     L --> F
-    K -- "Yes" --> M["<b>Definition of Ready Met</b><br/>Requirement owner accepts readiness with technical/test/business inputs"]
-    M --> N["<b>Developer Handoff</b><br/>Jira/story implementation, repo/context, expected tests, evidence expectations"]
-    N --> O["<b>Implementation and Ongoing Clarification</b><br/>Developer builds, asks questions, updates decisions/evidence"]
-    O --> P["<b>Definition of Done Review</b><br/>Tests, PR, CI/CD, test-environment smoke, source validation, and business evidence as applicable"]
+    K -- "Yes" --> M["\`**Definition of Ready Met**
+Requirement owner accepts readiness with technical/test/business inputs\`"]
+    M --> N["\`**Developer Handoff**
+Jira/story implementation, repo/context, expected tests, evidence expectations\`"]
+    N --> O["\`**Implementation and Ongoing Clarification**
+Developer builds, asks questions, updates decisions/evidence\`"]
+    O --> P["\`**Definition of Done Review**
+Tests, PR, CI/CD, test-environment smoke, source validation, and business evidence as applicable\`"]
 \`\`\``,
   class: `\`\`\`mermaid
 classDiagram
