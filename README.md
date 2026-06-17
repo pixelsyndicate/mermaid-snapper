@@ -1,8 +1,19 @@
-# Mermaid Diagram Screenshot Helper
+# Mermaid Snapper
 
-Static browser app for rendering Mermaid source into a clean preview that can be copied, downloaded, screenshotted, and pasted into documentation systems such as Confluence.
+Static browser app for rendering Mermaid source into a clean preview that can be copied, downloaded, screenshotted, and pasted into documentation systems.
+
+Open the hosted app: <https://pixelsyndicate.github.io/mermaid-snapper/>
 
 The app has no Express.js runtime. It is plain HTML, CSS, and JavaScript under `docs/`, with Node.js used only for dependency management, tests, and refreshing vendored assets.
+
+## Current Features
+
+- Render fenced or unfenced Mermaid source in the browser.
+- Choose from bundled Mermaid sample diagrams.
+- Switch Mermaid themes and preview sizing.
+- Copy or download rendered SVG output.
+- Download PNG output for diagrams that browser canvas security allows.
+- Persist recent source and settings in localStorage.
 
 ## Prerequisites
 
@@ -19,7 +30,7 @@ npm install
 
 Open `docs/index.html` in a browser.
 
-The app references static assets with relative paths so it can run from the file system, a static web host, or a future GitHub Pages project site.
+The app references static assets with relative paths so it can run from the file system or a static web host.
 
 ## Refresh Vendored Mermaid
 
@@ -54,12 +65,12 @@ npm run test:watch
 
 ## Static Hosting Notes
 
+- GitHub Pages is configured to publish from the `main` branch and `/docs` folder.
+- The public project site is <https://pixelsyndicate.github.io/mermaid-snapper/>.
 - `docs/index.html` is the site entrypoint.
 - `docs/.nojekyll` disables Jekyll processing for branch-based GitHub Pages publishing.
 - Mermaid rendering, SVG copy/download, PNG export, settings, and samples all run in the browser.
 - There is no server-side persistence, database, health endpoint, or server-side PNG export.
-
-If this is later migrated to a public GitHub repository, GitHub Pages can publish from the `main` branch and `/docs` folder, or from a GitHub Actions artifact built from this same static tree.
 
 ## Manual Verification
 
@@ -73,6 +84,9 @@ After changes that affect the browser workflow, verify:
 - PNG download works where browser security allows.
 - Settings survive refresh through localStorage.
 
-## Current Limitation
+## Known Defects And Limitations
 
-PNG export is intentionally browser-based. Server-side image rendering would require a separate hosted runtime and is out of scope for this static version.
+- PNG export can fail with `Failed to execute 'toDataURL' on 'HTMLCanvasElement': Tainted canvases may not be exported.` This has been observed with Mermaid diagrams that include HTML in labels, such as `<b>` and `<br/>`.
+- SVG copy and SVG download remain the preferred export paths while the PNG issue is unresolved.
+- A future fix may sanitize HTML before PNG rasterization, or disable PNG export with a clear warning when the rendered diagram cannot be safely exported by the browser.
+- PNG export is intentionally browser-based. Server-side image rendering would require a separate hosted runtime and is out of scope for this static version.
