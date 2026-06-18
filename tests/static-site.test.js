@@ -109,6 +109,8 @@ describe('static GitHub Pages-ready site', () => {
     expect(html).toContain('<legend>Display options</legend>');
     expect(html).toContain('for="widthInput">Width</label>');
     expect(html).toContain('for="scaleInput">Scale</label>');
+    expect(html).toContain('data-step-target="widthInput"');
+    expect(html).toContain('data-step-target="scaleInput"');
     expect(html).toContain('for="bgInput">Background</label>');
   });
 
@@ -129,9 +131,26 @@ describe('static GitHub Pages-ready site', () => {
     expect(css).toContain('@media (max-width: 767.98px)');
     expect(css).toContain('.header-title p,');
     expect(css).toContain('.export-controls button');
+    expect(css).toContain('.number-stepper');
+    expect(css).toContain('.step-button');
+    expect(css).toContain('.preview-shell.is-panning');
+    expect(css).toContain('cursor: grab;');
+    expect(css).toContain('user-select: none;');
     expect(js).toContain("stackedSplit: 'mermaid-helper-stacked-split'");
     expect(js).toContain('Resize editor and preview rows');
     expect(js).toContain('function updateSplitFromClientY(clientY)');
+    expect(js).toContain('function getEditableNumber(input)');
+    expect(js).toContain('commit: false');
+    expect(js).toContain("document.querySelectorAll('[data-step-target]')");
+    expect(js).toContain('const stackedSplitLimits = {');
+    expect(js).toContain('min: 180');
+    expect(js).toContain("splitter.setAttribute('aria-valuemin', String(stackedSplitLimits.min));");
+    expect(js).toContain('stacked ? applyStackedSplit(stackedSplitLimits.min) : applySplit(25);');
+    expect(js).toContain("const previewShell = document.querySelector('.preview-shell');");
+    expect(js).toContain('function startPreviewPan(event)');
+    expect(js).toContain("event.pointerType === 'touch'");
+    expect(js).toContain('function scalePreviewWithWheel(event)');
+    expect(js).toContain("previewShell.addEventListener('wheel', scalePreviewWithWheel, { passive: false });");
   });
 
   test('sample dropdown options are backed by the sample catalog', () => {
@@ -177,7 +196,8 @@ describe('static GitHub Pages-ready site', () => {
     expect(appJs).toContain('localStorage.setItem(storageKeys.look, lookSelect.value);');
     expect(appJs).toContain("lookSelect.value = savedLook && savedLook !== 'default' ? savedLook : 'classic';");
     expect(appJs).toContain('look: lookSelect.value');
-    expect(appJs).toContain('control === themeSelect || control === lookSelect');
+    expect(appJs).toContain('[themeSelect, lookSelect].forEach((control) => {');
+    expect(appJs).toContain('renderMermaid();');
     expect(appJs).not.toContain("if (lookSelect.value !== 'default')");
     expect(appJs).not.toContain('layoutSelect');
   });

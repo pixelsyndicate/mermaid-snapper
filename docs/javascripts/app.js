@@ -29,6 +29,7 @@
   const bgInput = document.getElementById('bgInput');
   const splitter = document.getElementById('splitter');
   const captureArea = document.getElementById('captureArea');
+  const previewShell = document.querySelector('.preview-shell');
   const diagramEl = document.getElementById('diagram');
   const errorEl = document.getElementById('error');
   const statusEl = document.getElementById('status');
@@ -38,12 +39,29 @@
   const helpDialog = document.getElementById('helpDialog');
   const helpCloseButton = document.getElementById('helpCloseBtn');
   const helpOkButton = document.getElementById('helpOkBtn');
+  const numericSettings = new Map([
+    [widthInput, { min: 360, max: 2400, fallback: 960, step: 20 }],
+    [scaleInput, { min: 40, max: 500, fallback: 100, step: 5 }]
+  ]);
+  const stackedSplitLimits = {
+    min: 180,
+    max: 640,
+    fallback: 340
+  };
 
   let currentSvgText = '';
   let renderCount = 0;
   let splitPercent = 42;
   let stackedEditorHeight = 340;
   let isDraggingSplit = false;
+  let isPanningPreview = false;
+  let previewPanStart = {
+    pointerId: null,
+    x: 0,
+    y: 0,
+    scrollLeft: 0,
+    scrollTop: 0
+  };
   let isExportingPng = false;
   let lastRenderedStatus = '';
   let pngExportSupport = {
@@ -52,18 +70,104 @@
     reason: ''
   };
 
-  function applyPreviewSettings() {
-    const width = clampNumber(widthInput.value, 360, 2400, 960);
-    const scale = clampNumber(scaleInput.value, 40, 500, 100);
+  function getEditableNumber(input) {
+    const setting = numericSettings.get(input);
+    const value = String(input.value || '').trim();
+    const parsed = Number(value);
+
+    if (!setting || !value || !Number.isFinite(parsed) || parsed < setting.min || parsed > setting.max) {
+      return null;
+    }
+
+    return parsed;
+  }
+
+  function applyPreviewSettings(options = {}) {
+    const commit = options.commit !== false;
+    const width = commit
+      ? clampNumber(widthInput.value, 360, 2400, 960)
+      : getEditableNumber(widthInput);
+    const scale = commit
+      ? clampNumber(scaleInput.value, 40, 500, 100)
+      : getEditableNumber(scaleInput);
+
+    if (width === null || scale === null) {
+      return false;
+    }
+
     const scaleFactor = scale / 100;
 
-    widthInput.value = width;
-    scaleInput.value = scale;
+    if (commit) {
+      widthInput.value = width;
+      scaleInput.value = scale;
+    }
+
     captureArea.style.width = `${width}px`;
     captureArea.style.backgroundColor = bgInput.value || '#ffffff';
     captureArea.style.transform = `scale(${scaleFactor})`;
     captureArea.style.marginRight = scaleFactor <= 1 ? '0' : `${width * (scaleFactor - 1)}px`;
     captureArea.style.marginBottom = scaleFactor <= 1 ? '0' : `${captureArea.offsetHeight * (scaleFactor - 1)}px`;
+    return true;
+  }
+
+  function updateNumericInput(input, direction, options = {}) {
+    const shouldFocus = options.focus !== false;
+    const setting = numericSettings.get(input);
+    const parsed = Number(input.value);
+    const current = Number.isFinite(parsed) ? parsed : setting.fallback;
+    input.value = clampNumber(current + (setting.step * direction), setting.min, setting.max, setting.fallback);
+    applyPreviewSettings();
+    persist();
+    if (shouldFocus) {
+      input.focus();
+    }
+  }
+
+  function startPreviewPan(event) {
+    if (event.button !== 0 || event.pointerType === 'touch' || event.target.closest('a, button, input, select, textarea')) {
+      return;
+    }
+
+    isPanningPreview = true;
+    previewPanStart = {
+      pointerId: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      scrollLeft: previewShell.scrollLeft,
+      scrollTop: previewShell.scrollTop
+    };
+    previewShell.classList.add('is-panning');
+    previewShell.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  }
+
+  function updatePreviewPan(event) {
+    if (!isPanningPreview || event.pointerId !== previewPanStart.pointerId) {
+      return;
+    }
+
+    previewShell.scrollLeft = previewPanStart.scrollLeft - (event.clientX - previewPanStart.x);
+    previewShell.scrollTop = previewPanStart.scrollTop - (event.clientY - previewPanStart.y);
+    event.preventDefault();
+  }
+
+  function stopPreviewPan(event) {
+    if (!isPanningPreview || event.pointerId !== previewPanStart.pointerId) {
+      return;
+    }
+
+    isPanningPreview = false;
+    previewShell.classList.remove('is-panning');
+    previewShell.releasePointerCapture(event.pointerId);
+  }
+
+  function scalePreviewWithWheel(event) {
+    if (!event.ctrlKey) {
+      return;
+    }
+
+    event.preventDefault();
+    updateNumericInput(scaleInput, event.deltaY < 0 ? 1 : -1, { focus: false });
   }
 
   function applySplit(percent) {
@@ -73,7 +177,12 @@
   }
 
   function applyStackedSplit(height) {
-    stackedEditorHeight = clampNumber(height, 280, 640, 340);
+    stackedEditorHeight = clampNumber(
+      height,
+      stackedSplitLimits.min,
+      stackedSplitLimits.max,
+      stackedSplitLimits.fallback
+    );
     mainEl.style.setProperty('--stacked-editor-height', `${stackedEditorHeight}px`);
     splitter.setAttribute('aria-valuenow', String(Math.round(stackedEditorHeight)));
   }
@@ -97,8 +206,8 @@
     if (isStackedLayout()) {
       splitter.setAttribute('aria-label', 'Resize editor and preview rows');
       splitter.setAttribute('aria-orientation', 'horizontal');
-      splitter.setAttribute('aria-valuemin', '280');
-      splitter.setAttribute('aria-valuemax', '640');
+      splitter.setAttribute('aria-valuemin', String(stackedSplitLimits.min));
+      splitter.setAttribute('aria-valuemax', String(stackedSplitLimits.max));
       splitter.setAttribute('aria-valuenow', String(Math.round(stackedEditorHeight)));
     } else {
       splitter.setAttribute('aria-label', 'Resize editor and preview panes');
@@ -426,17 +535,55 @@
     }
   });
 
-  [themeSelect, lookSelect, widthInput, scaleInput, bgInput].forEach((control) => {
+  [themeSelect, lookSelect].forEach((control) => {
     control.addEventListener('change', () => {
       applyPreviewSettings();
       persist();
-      if (control === themeSelect || control === lookSelect) {
-        renderMermaid();
+      renderMermaid();
+    });
+  });
+
+  bgInput.addEventListener('change', () => {
+    applyPreviewSettings();
+    persist();
+  });
+  bgInput.addEventListener('input', () => {
+    applyPreviewSettings();
+    persist();
+  });
+
+  [widthInput, scaleInput].forEach((control) => {
+    control.addEventListener('change', () => {
+      const canPreview = applyPreviewSettings({
+        commit: document.activeElement !== control
+      });
+      if (canPreview) {
+        persist();
       }
     });
     control.addEventListener('input', () => {
+      if (applyPreviewSettings({ commit: false })) {
+        persist();
+      }
+    });
+    control.addEventListener('blur', () => {
       applyPreviewSettings();
       persist();
+    });
+    control.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        control.blur();
+      }
+    });
+  });
+
+  document.querySelectorAll('[data-step-target]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const target = document.getElementById(button.dataset.stepTarget);
+      const direction = Number(button.dataset.stepDirection);
+      if (target && numericSettings.has(target)) {
+        updateNumericInput(target, direction);
+      }
     });
   });
 
@@ -444,6 +591,12 @@
     sampleSelect.value = 'last';
     persist();
   });
+
+  previewShell.addEventListener('pointerdown', startPreviewPan);
+  previewShell.addEventListener('pointermove', updatePreviewPan);
+  previewShell.addEventListener('pointerup', stopPreviewPan);
+  previewShell.addEventListener('pointercancel', stopPreviewPan);
+  previewShell.addEventListener('wheel', scalePreviewWithWheel, { passive: false });
 
   splitter.addEventListener('pointerdown', (event) => {
     isDraggingSplit = true;
@@ -501,9 +654,9 @@
     } else if (!stacked && event.key === 'ArrowRight') {
       applySplit(splitPercent + step);
     } else if (event.key === 'Home') {
-      stacked ? applyStackedSplit(280) : applySplit(25);
+      stacked ? applyStackedSplit(stackedSplitLimits.min) : applySplit(25);
     } else if (event.key === 'End') {
-      stacked ? applyStackedSplit(640) : applySplit(75);
+      stacked ? applyStackedSplit(stackedSplitLimits.max) : applySplit(75);
     } else {
       return;
     }

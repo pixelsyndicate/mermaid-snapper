@@ -249,6 +249,35 @@ input[type="number"] {
   width: 86px;
 }
 
+.number-stepper {
+  display: inline-grid;
+  grid-template-columns: 30px minmax(72px, 86px) 30px;
+  align-items: stretch;
+}
+
+.number-stepper input[type="number"] {
+  width: 100%;
+  min-width: 0;
+  border-radius: 0;
+  text-align: center;
+}
+
+.step-button {
+  width: 30px;
+  min-width: 30px;
+  padding: 0;
+  font-weight: 700;
+  user-select: none;
+}
+
+.step-button:first-child {
+  border-radius: 6px 0 0 6px;
+}
+
+.step-button:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
 input[type="color"] {
   width: 44px;
   padding: 3px;
@@ -355,6 +384,7 @@ body.is-resizing .splitter::before {
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
+  cursor: grab;
   padding: 18px;
   background:
     linear-gradient(45deg, rgba(148, 163, 184, 0.10) 25%, transparent 25%),
@@ -363,6 +393,10 @@ body.is-resizing .splitter::before {
     linear-gradient(-45deg, transparent 75%, rgba(148, 163, 184, 0.10) 75%);
   background-size: 24px 24px;
   background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+}
+
+.preview-shell.is-panning {
+  cursor: grabbing;
 }
 
 #captureArea {
@@ -376,11 +410,15 @@ body.is-resizing .splitter::before {
   display: flex;
   align-items: center;
   justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 #diagram {
   max-width: 100%;
   overflow: visible;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 #diagram svg {
@@ -388,6 +426,8 @@ body.is-resizing .splitter::before {
   max-width: 100%;
   height: auto;
   margin: 0 auto;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .empty-state {
@@ -630,6 +670,15 @@ body.is-resizing .splitter::before {
 
   input[type="number"] {
     width: 78px;
+  }
+
+  .number-stepper {
+    grid-template-columns: 28px minmax(64px, 78px) 28px;
+  }
+
+  .step-button {
+    width: 28px;
+    min-width: 28px;
   }
 
   input[type="color"] {

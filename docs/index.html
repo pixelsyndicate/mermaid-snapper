@@ -14,7 +14,7 @@
         <img src="./images/favicon.svg" alt="Mermaid Snapper logo" class="logo">
       </div>
       <div class="header-title">
-        <h1>Mermaid Snapper <span class="app-version">v0.2.0</span></h1>
+        <h1>Mermaid Snapper <span class="app-version">v0.2.1</span></h1>
         <p>test, preview and capture mermaid.js diagrams</p>
       </div>
       <div class="header-actions">
@@ -111,10 +111,18 @@
             <legend>Display options</legend>
             <div class="controls">
             <label for="widthInput">Width</label>
-            <input id="widthInput" type="number" min="360" max="2400" step="20" value="960">
+            <div class="number-stepper">
+              <button class="step-button" type="button" data-step-target="widthInput" data-step-direction="-1" aria-label="Decrease width">-</button>
+              <input id="widthInput" type="number" inputmode="numeric" min="360" max="2400" step="20" value="960">
+              <button class="step-button" type="button" data-step-target="widthInput" data-step-direction="1" aria-label="Increase width">+</button>
+            </div>
 
             <label for="scaleInput">Scale</label>
-            <input id="scaleInput" type="number" min="40" max="500" step="5" value="100">
+            <div class="number-stepper">
+              <button class="step-button" type="button" data-step-target="scaleInput" data-step-direction="-1" aria-label="Decrease scale">-</button>
+              <input id="scaleInput" type="number" inputmode="numeric" min="40" max="500" step="5" value="100">
+              <button class="step-button" type="button" data-step-target="scaleInput" data-step-direction="1" aria-label="Increase scale">+</button>
+            </div>
 
             <label for="bgInput">Background</label>
             <input id="bgInput" type="color" value="#ffffff">
@@ -162,7 +170,7 @@
         <dl class="about-meta">
           <div>
             <dt>App version</dt>
-            <dd>v0.2.0</dd>
+            <dd>v0.2.1</dd>
           </div>
           <div>
             <dt>Mermaid library</dt>

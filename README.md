@@ -4,7 +4,7 @@ test, preview and capture mermaid.js diagrams
 
 Static browser app for rendering Mermaid source into a clean preview that can be copied, downloaded, screenshotted, and pasted into documentation systems.
 
-Current app version: `0.2.0`
+Current app version: `0.2.1`
 
 Open the hosted app: <https://pixelsyndicate.github.io/mermaid-snapper/>
 
@@ -21,6 +21,13 @@ The app is plain HTML, CSS, and JavaScript under `docs/`, with Node.js used only
 - Copy or download rendered SVG output.
 - Download PNG output for diagrams that browser canvas security allows.
 - Persist recent source and settings in localStorage.
+
+## Mouse And Preview Controls
+
+- Drag inside the rendered preview to pan around large or zoomed diagrams.
+- Hold `Ctrl` and use the mouse wheel over the preview to adjust Scale in 5% steps.
+- Use the Width and Scale `-` / `+` buttons for precise step changes without typing.
+- Drag the splitter between the editor and preview to resize the workspace. In stacked tablet layouts, drag the splitter upward to give the preview more room.
 
 ## Prerequisites
 
