@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.4 - 2026-06-18
+
+- Right-aligned the preview Tips control, changed it from `?` to `i`, and widened the tip popover.
+
+## 0.2.3 - 2026-06-18
+
+- Moved the preview Tips button into the existing export toolbar so it no longer consumes a separate preview row.
+
 ## 0.2.2 - 2026-06-18
 
 - Added preview tips for desktop mouse and keyboard controls.

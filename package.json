@@ -1,6 +1,6 @@
 {
   "name": "mermaid-snapper",
-  "version": "0.2.2",
+  "version": "0.2.4",
   "private": true,
   "description": "Static browser app for rendering Mermaid diagrams and exporting SVG/PNG assets.",
   "engines": {

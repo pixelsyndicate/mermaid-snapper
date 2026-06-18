@@ -143,9 +143,12 @@ describe('static GitHub Pages-ready site', () => {
     expect(css).toContain('.export-controls button');
     expect(css).toContain('.number-stepper');
     expect(css).toContain('.step-button');
-    expect(css).toContain('.preview-help-bar');
+    expect(css).toContain('.tips-control');
     expect(css).toContain('.tips-popover');
-    expect(css).toContain('.tips-button:focus-visible + .tips-popover');
+    expect(css).toContain('.export-controls');
+    expect(css).toContain('margin-left: auto;');
+    expect(css).toContain('width: 320px;');
+    expect(css).toContain('.tips-control:focus-within .tips-popover');
     expect(css).toContain('.preview-shell.is-panning');
     expect(css).toContain('cursor: grab;');
     expect(css).toContain('user-select: none;');
@@ -239,7 +242,8 @@ describe('static GitHub Pages-ready site', () => {
     expect(html).toContain('https://openai.com/codex/');
     expect(html).toContain('vibe-coded with CODEX by OpenAI');
     expect(html).toContain('id="helpOkBtn"');
-    expect(html).toContain('class="preview-help-bar"');
+    expect(html).toContain('class="tips-control"');
+    expect(html).toContain('>i</button>');
     expect(html).toContain('id="previewTips"');
     expect(html).toContain('aria-describedby="previewTips"');
     expect(html).toContain('Drag the preview to pan.');
