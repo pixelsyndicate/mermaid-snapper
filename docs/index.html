@@ -14,7 +14,7 @@
         <img src="./images/favicon.svg" alt="Mermaid Snapper logo" class="logo">
       </div>
       <div class="header-title">
-        <h1>Mermaid Snapper <span class="app-version">v0.2.1</span></h1>
+        <h1>Mermaid Snapper <span class="app-version" id="appVersion"></span></h1>
         <p>test, preview and capture mermaid.js diagrams</p>
       </div>
       <div class="header-actions">
@@ -27,7 +27,7 @@
           aria-controls="helpDialog"
           aria-expanded="false"
         >?</button>
-        <a class="version" href="https://mermaid.js.org/intro/" target="_blank" rel="noopener noreferrer">Mermaid 11.15.0</a>
+        <a class="version" id="mermaidDocsLink" href="https://mermaid.js.org/intro/" target="_blank" rel="noopener noreferrer">Mermaid 11.15.0</a>
       </div>
     </header>
 
@@ -170,15 +170,11 @@
         <dl class="about-meta">
           <div>
             <dt>App version</dt>
-            <dd>v0.2.1</dd>
+            <dd id="aboutAppVersion"></dd>
           </div>
           <div>
             <dt>Mermaid library</dt>
             <dd>11.15.0</dd>
-          </div>
-          <div>
-            <dt>App type</dt>
-            <dd>Static browser app</dd>
           </div>
         </dl>
 
@@ -193,9 +189,9 @@
         </section>
 
         <div class="about-links">
-          <a href="https://mermaid.js.org/intro/" target="_blank" rel="noopener noreferrer">Mermaid docs</a>
-          <a href="https://github.com/pixelsyndicate/mermaid-snapper" target="_blank" rel="noopener noreferrer">GitHub repository</a>
-          <a href="https://pixelsyndicate.github.io/mermaid-snapper/" target="_blank" rel="noopener noreferrer">GitHub Pages site</a>
+          <a id="aboutMermaidDocsLink" href="https://mermaid.js.org/intro/" target="_blank" rel="noopener noreferrer">Mermaid docs</a>
+          <a id="repositoryLink" href="https://github.com/pixelsyndicate/mermaid-snapper" target="_blank" rel="noopener noreferrer">GitHub repository</a>
+          <a id="pagesLink" href="https://pixelsyndicate.github.io/mermaid-snapper/" target="_blank" rel="noopener noreferrer">GitHub Pages site</a>
         </div>
 
         <p class="about-credit">
@@ -210,6 +206,7 @@
   </div>
 
   <script src="./vendor/mermaid/mermaid.min.js"></script>
+  <script src="./javascripts/metadata.js"></script>
   <script src="./javascripts/utils.js"></script>
   <script src="./javascripts/samples.js"></script>
   <script src="./javascripts/app.js"></script>

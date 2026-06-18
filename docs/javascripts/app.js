@@ -8,6 +8,7 @@
     stripCodeFence
   } = window.MermaidHelperUtils;
   const samples = window.MermaidHelperSamples;
+  const metadata = window.MermaidSnapperMetadata || {};
   const storageKeys = {
     source: 'mermaid-helper-source',
     theme: 'mermaid-helper-theme',
@@ -39,6 +40,12 @@
   const helpDialog = document.getElementById('helpDialog');
   const helpCloseButton = document.getElementById('helpCloseBtn');
   const helpOkButton = document.getElementById('helpOkBtn');
+  const appVersionEl = document.getElementById('appVersion');
+  const aboutAppVersionEl = document.getElementById('aboutAppVersion');
+  const mermaidDocsLink = document.getElementById('mermaidDocsLink');
+  const aboutMermaidDocsLink = document.getElementById('aboutMermaidDocsLink');
+  const repositoryLink = document.getElementById('repositoryLink');
+  const pagesLink = document.getElementById('pagesLink');
   const numericSettings = new Map([
     [widthInput, { min: 360, max: 2400, fallback: 960, step: 20 }],
     [scaleInput, { min: 40, max: 500, fallback: 100, step: 5 }]
@@ -168,6 +175,25 @@
 
     event.preventDefault();
     updateNumericInput(scaleInput, event.deltaY < 0 ? 1 : -1, { focus: false });
+  }
+
+  function applyMetadata() {
+    const versionText = metadata.appVersion ? `v${metadata.appVersion}` : '';
+    const releaseText = metadata.releaseDate ? ` (${metadata.releaseDate})` : '';
+    const linkTargets = [
+      [mermaidDocsLink, metadata.mermaidDocsUrl],
+      [aboutMermaidDocsLink, metadata.mermaidDocsUrl],
+      [repositoryLink, metadata.repositoryUrl],
+      [pagesLink, metadata.pagesUrl]
+    ];
+
+    appVersionEl.textContent = versionText;
+    aboutAppVersionEl.textContent = `${versionText}${releaseText}`;
+    linkTargets.forEach(([link, href]) => {
+      if (href) {
+        link.href = href;
+      }
+    });
   }
 
   function applySplit(percent) {
@@ -667,6 +693,7 @@
 
   window.addEventListener('resize', updateSplitterAccessibility);
 
+  applyMetadata();
   restore();
   renderMermaid();
 })();

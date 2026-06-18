@@ -3,6 +3,7 @@ const path = require('path');
 
 const packageJson = require('../package.json');
 const samples = require('../docs/javascripts/samples');
+const metadata = require('../docs/javascripts/metadata');
 
 const siteRoot = path.join(__dirname, '..', 'docs');
 
@@ -31,6 +32,7 @@ describe('static GitHub Pages-ready site', () => {
       'stylesheets/app.css',
       'images/favicon.svg',
       'vendor/mermaid/mermaid.min.js',
+      'javascripts/metadata.js',
       'javascripts/utils.js',
       'javascripts/samples.js',
       'javascripts/app.js'
@@ -62,7 +64,7 @@ describe('static GitHub Pages-ready site', () => {
     expect(html).toContain('aria-controls="helpDialog"');
     expect(html).toContain('aria-haspopup="dialog"');
     expect(html).toContain(
-      '<a class="version" href="https://mermaid.js.org/intro/" target="_blank" rel="noopener noreferrer">Mermaid 11.15.0</a>'
+      '<a class="version" id="mermaidDocsLink" href="https://mermaid.js.org/intro/" target="_blank" rel="noopener noreferrer">Mermaid 11.15.0</a>'
     );
   });
 
@@ -83,10 +85,18 @@ describe('static GitHub Pages-ready site', () => {
     const changelog = readRootFile('CHANGELOG.md');
     const version = packageJson.version;
 
+    expect(metadata).toEqual(expect.objectContaining({
+      appVersion: version,
+      releaseDate: expect.stringMatching(/^\d{8}$/),
+      mermaidDocsUrl: 'https://mermaid.js.org/intro/',
+      repositoryUrl: 'https://github.com/pixelsyndicate/mermaid-snapper',
+      pagesUrl: 'https://pixelsyndicate.github.io/mermaid-snapper/'
+    }));
     expect(packageLock.version).toBe(version);
     expect(packageLock.packages[''].version).toBe(version);
-    expect(html).toContain(`<span class="app-version">v${version}</span>`);
-    expect(html).toContain(`<dd>v${version}</dd>`);
+    expect(html).toContain('<span class="app-version" id="appVersion"></span>');
+    expect(html).toContain('<dd id="aboutAppVersion"></dd>');
+    expect(html).not.toContain(`v${version} (${metadata.releaseDate})`);
     expect(readme).toContain(`Current app version: \`${version}\``);
     expect(readme).toContain('[CHANGELOG.md](CHANGELOG.md)');
     expect(changelog).toContain(`## ${version} - `);
@@ -214,7 +224,8 @@ describe('static GitHub Pages-ready site', () => {
     expect(html).toContain('About Mermaid Snapper');
     expect(html).toContain('App version');
     expect(html).toContain('Mermaid library');
-    expect(html).toContain('Static browser app');
+    expect(html).not.toContain('App type');
+    expect(html).not.toContain('Static browser app');
     expect(html).toContain('Render Mermaid source from pasted code or bundled samples');
     expect(html).toContain('PNG export may be disabled when browser security blocks SVG-to-canvas export.');
     expect(html).toContain('https://github.com/pixelsyndicate/mermaid-snapper');
@@ -228,6 +239,10 @@ describe('static GitHub Pages-ready site', () => {
     expect(css).toContain('.header-actions');
     expect(appJs).toContain("const helpButton = document.getElementById('helpBtn');");
     expect(appJs).toContain("const helpOkButton = document.getElementById('helpOkBtn');");
+    expect(appJs).toContain('const metadata = window.MermaidSnapperMetadata || {};');
+    expect(appJs).toContain('function applyMetadata()');
+    expect(appJs).toContain("appVersionEl.textContent = versionText;");
+    expect(appJs).toContain("aboutAppVersionEl.textContent = `${versionText}${releaseText}`;");
     expect(appJs).toContain('function openHelpDialog()');
     expect(appJs).toContain('function closeHelpDialog()');
     expect(appJs).toContain("event.key === 'Escape'");
