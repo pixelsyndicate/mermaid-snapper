@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.2 - 2026-06-18
+
+- Added preview tips for desktop mouse and keyboard controls.
+- Added About modal mouse-control notes.
+- Prevented Width and Scale step buttons from focusing numeric inputs and opening the iPad virtual keyboard.
+
 ## 0.2.1 - 2026-06-18
 
 - Improved iPad/touch editing for Width and Scale controls so partial typed values are not clamped while editing.

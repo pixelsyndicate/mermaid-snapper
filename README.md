@@ -4,7 +4,7 @@ test, preview and capture mermaid.js diagrams
 
 Static browser app for rendering Mermaid source into a clean preview that can be copied, downloaded, screenshotted, and pasted into documentation systems.
 
-Current app version: `0.2.1`
+Current app version: `0.2.2`
 
 Open the hosted app: <https://pixelsyndicate.github.io/mermaid-snapper/>
 

@@ -136,6 +136,18 @@
           </div>
         </div>
 
+        <div class="preview-help-bar">
+          <button
+            class="icon-button tips-button"
+            type="button"
+            aria-label="Preview tips"
+            aria-describedby="previewTips"
+          >?</button>
+          <div class="tips-popover" id="previewTips" role="tooltip">
+            Drag the preview to pan. Hold Ctrl and use the mouse wheel to change Scale. Use Home, End, and arrow keys on the splitter to resize panes.
+          </div>
+        </div>
+
         <div class="preview-shell">
           <div id="captureArea">
             <div id="diagram">
@@ -186,6 +198,11 @@
         <section>
           <h3>Exports</h3>
           <p>SVG copy and download use the rendered diagram directly. PNG export may be disabled when browser security blocks SVG-to-canvas export.</p>
+        </section>
+
+        <section>
+          <h3>Mouse Controls</h3>
+          <p>Drag the preview to pan around large diagrams. Hold Ctrl and use the mouse wheel over the preview to change Scale in 5% steps.</p>
         </section>
 
         <div class="about-links">

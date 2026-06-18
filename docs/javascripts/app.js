@@ -117,17 +117,13 @@
     return true;
   }
 
-  function updateNumericInput(input, direction, options = {}) {
-    const shouldFocus = options.focus !== false;
+  function updateNumericInput(input, direction) {
     const setting = numericSettings.get(input);
     const parsed = Number(input.value);
     const current = Number.isFinite(parsed) ? parsed : setting.fallback;
     input.value = clampNumber(current + (setting.step * direction), setting.min, setting.max, setting.fallback);
     applyPreviewSettings();
     persist();
-    if (shouldFocus) {
-      input.focus();
-    }
   }
 
   function startPreviewPan(event) {
@@ -174,7 +170,7 @@
     }
 
     event.preventDefault();
-    updateNumericInput(scaleInput, event.deltaY < 0 ? 1 : -1, { focus: false });
+    updateNumericInput(scaleInput, event.deltaY < 0 ? 1 : -1);
   }
 
   function applyMetadata() {

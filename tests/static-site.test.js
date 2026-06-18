@@ -143,6 +143,9 @@ describe('static GitHub Pages-ready site', () => {
     expect(css).toContain('.export-controls button');
     expect(css).toContain('.number-stepper');
     expect(css).toContain('.step-button');
+    expect(css).toContain('.preview-help-bar');
+    expect(css).toContain('.tips-popover');
+    expect(css).toContain('.tips-button:focus-visible + .tips-popover');
     expect(css).toContain('.preview-shell.is-panning');
     expect(css).toContain('cursor: grab;');
     expect(css).toContain('user-select: none;');
@@ -152,6 +155,7 @@ describe('static GitHub Pages-ready site', () => {
     expect(js).toContain('function getEditableNumber(input)');
     expect(js).toContain('commit: false');
     expect(js).toContain("document.querySelectorAll('[data-step-target]')");
+    expect(js).not.toContain('input.focus();');
     expect(js).toContain('const stackedSplitLimits = {');
     expect(js).toContain('min: 180');
     expect(js).toContain("splitter.setAttribute('aria-valuemin', String(stackedSplitLimits.min));");
@@ -224,6 +228,8 @@ describe('static GitHub Pages-ready site', () => {
     expect(html).toContain('About Mermaid Snapper');
     expect(html).toContain('App version');
     expect(html).toContain('Mermaid library');
+    expect(html).toContain('Mouse Controls');
+    expect(html).toContain('Hold Ctrl and use the mouse wheel over the preview to change Scale in 5% steps.');
     expect(html).not.toContain('App type');
     expect(html).not.toContain('Static browser app');
     expect(html).toContain('Render Mermaid source from pasted code or bundled samples');
@@ -233,6 +239,10 @@ describe('static GitHub Pages-ready site', () => {
     expect(html).toContain('https://openai.com/codex/');
     expect(html).toContain('vibe-coded with CODEX by OpenAI');
     expect(html).toContain('id="helpOkBtn"');
+    expect(html).toContain('class="preview-help-bar"');
+    expect(html).toContain('id="previewTips"');
+    expect(html).toContain('aria-describedby="previewTips"');
+    expect(html).toContain('Drag the preview to pan.');
     expect(css).toContain('.modal-backdrop');
     expect(css).toContain('.modal-backdrop[hidden]');
     expect(css).toContain('.about-credit');
