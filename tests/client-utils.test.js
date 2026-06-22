@@ -2,6 +2,8 @@ const {
   clampNumber,
   createPngExportSource,
   createSvgDownloadBlob,
+  decodeMermaidSourceFromUrl,
+  encodeMermaidSourceForUrl,
   PNG_DOWNLOAD,
   prepareSourceForPngExport,
   SVG_DOWNLOAD,
@@ -90,6 +92,54 @@ describe('client utility behavior', () => {
     ].join('\n');
 
     expect(createPngExportSource(source)).toBe('flowchart TD\n  A["Intake Request"]');
+  });
+
+  test('base64url encodes and decodes Mermaid source for shared URLs', () => {
+    const source = 'flowchart TD\n  A[Start] --> B[Finish]';
+    const encoded = encodeMermaidSourceForUrl(source);
+
+    expect(encoded).not.toMatch(/[+/=]/);
+    expect(decodeMermaidSourceFromUrl(encoded)).toEqual({
+      ok: true,
+      source
+    });
+  });
+
+  test('decodes standard base64 Mermaid source for shared URLs', () => {
+    const source = 'flowchart LR\n  A --> B';
+    const encoded = Buffer.from(source, 'utf8').toString('base64');
+
+    expect(decodeMermaidSourceFromUrl(encoded)).toEqual({
+      ok: true,
+      source
+    });
+  });
+
+  test('decodes shared URL source with missing base64 padding', () => {
+    const source = 'flowchart TD\n  A --> B';
+    const encoded = Buffer.from(source, 'utf8').toString('base64').replace(/=+$/g, '');
+
+    expect(decodeMermaidSourceFromUrl(encoded)).toEqual({
+      ok: true,
+      source
+    });
+  });
+
+  test('preserves UTF-8 Mermaid labels in shared URLs', () => {
+    const source = 'flowchart TD\n  A["Ready ✓"] --> B["Café review"]';
+    const encoded = encodeMermaidSourceForUrl(source);
+
+    expect(decodeMermaidSourceFromUrl(encoded)).toEqual({
+      ok: true,
+      source
+    });
+  });
+
+  test('returns a controlled failure for invalid shared URL source', () => {
+    expect(decodeMermaidSourceFromUrl('%%%')).toEqual({
+      ok: false,
+      error: 'Shared diagram link could not be decoded. Check the mmd URL value and try again.'
+    });
   });
 
   test('creates SVG download blobs with the expected metadata', async () => {

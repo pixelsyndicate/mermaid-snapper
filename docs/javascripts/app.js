@@ -3,6 +3,8 @@
     clampNumber,
     createPngExportSource,
     createSvgDownloadBlob,
+    decodeMermaidSourceFromUrl,
+    encodeMermaidSourceForUrl,
     PNG_DOWNLOAD,
     SVG_DOWNLOAD,
     stripCodeFence
@@ -35,6 +37,7 @@
   const errorEl = document.getElementById('error');
   const statusEl = document.getElementById('status');
   const pngButton = document.getElementById('downloadPngBtn');
+  const copyLinkButton = document.getElementById('copyLinkBtn');
   const helpButton = document.getElementById('helpBtn');
   const helpBackdrop = document.getElementById('helpBackdrop');
   const helpDialog = document.getElementById('helpDialog');
@@ -301,20 +304,31 @@
     localStorage.setItem(storageKeys.stackedSplit, String(Math.round(stackedEditorHeight)));
   }
 
-  function restore() {
+  function restore(importedSource) {
+    const hasImportedSource = typeof importedSource === 'string';
     const savedSource = localStorage.getItem(storageKeys.source);
     const savedLook = localStorage.getItem(storageKeys.look);
-    sourceEl.value = savedSource || samples.dashboard;
+    sourceEl.value = hasImportedSource ? importedSource : savedSource || samples.dashboard;
     themeSelect.value = localStorage.getItem(storageKeys.theme) || 'default';
     lookSelect.value = savedLook && savedLook !== 'default' ? savedLook : 'classic';
     widthInput.value = localStorage.getItem(storageKeys.width) || '960';
     scaleInput.value = localStorage.getItem(storageKeys.scale) || '100';
     bgInput.value = localStorage.getItem(storageKeys.background) || '#ffffff';
-    sampleSelect.value = savedSource ? 'last' : 'dashboard';
+    sampleSelect.value = hasImportedSource || savedSource ? 'last' : 'dashboard';
     applySplit(localStorage.getItem(storageKeys.split) || 42);
     applyStackedSplit(localStorage.getItem(storageKeys.stackedSplit) || 340);
     updateSplitterAccessibility();
     applyPreviewSettings();
+  }
+
+  function getSharedSourceFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+
+    if (!params.has('mmd')) {
+      return null;
+    }
+
+    return decodeMermaidSourceFromUrl(params.get('mmd'));
   }
 
   function getMermaidConfig(htmlLabels) {
@@ -525,6 +539,18 @@
     }
   }
 
+  async function copyShareLink() {
+    try {
+      const source = sourceEl.value;
+      const url = new URL(window.location.href);
+      url.searchParams.set('mmd', encodeMermaidSourceForUrl(source));
+      await navigator.clipboard.writeText(url.toString());
+      setStatus('Link copied');
+    } catch (error) {
+      setError('Link copy failed. Browser clipboard access may be restricted.');
+    }
+  }
+
   sampleSelect.addEventListener('change', () => {
     const value = sampleSelect.value;
     sourceEl.value = value === 'last' ? localStorage.getItem(storageKeys.source) || samples.dashboard : samples[value] || '';
@@ -542,6 +568,7 @@
   document.getElementById('downloadSvgBtn').addEventListener('click', downloadSvg);
   pngButton.addEventListener('click', downloadPng);
   document.getElementById('copySvgBtn').addEventListener('click', copySvg);
+  copyLinkButton.addEventListener('click', copyShareLink);
   helpButton.addEventListener('click', openHelpDialog);
   helpCloseButton.addEventListener('click', closeHelpDialog);
   helpOkButton.addEventListener('click', closeHelpDialog);
@@ -690,6 +717,14 @@
   window.addEventListener('resize', updateSplitterAccessibility);
 
   applyMetadata();
-  restore();
-  renderMermaid();
+  const sharedSource = getSharedSourceFromUrl();
+  restore(sharedSource && sharedSource.ok ? sharedSource.source : null);
+  const initialRender = renderMermaid();
+
+  if (sharedSource && !sharedSource.ok) {
+    initialRender.finally(() => {
+      setError(sharedSource.error);
+      setStatus('Shared link could not be decoded');
+    });
+  }
 })();

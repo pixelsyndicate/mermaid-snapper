@@ -4,7 +4,7 @@ test, preview and capture mermaid.js diagrams
 
 Static browser app for rendering Mermaid source into a clean preview that can be copied, downloaded, screenshotted, and pasted into documentation systems.
 
-Current app version: `0.2.4`
+Current app version: `0.3.0`
 
 Open the hosted app: <https://pixelsyndicate.github.io/mermaid-snapper/>
 
@@ -18,6 +18,8 @@ The app is plain HTML, CSS, and JavaScript under `docs/`, with Node.js used only
 - Choose from bundled Mermaid sample diagrams.
 - Switch Mermaid themes and looks.
 - Adjust display width, scale, and background.
+- Open shared Mermaid Snapper URLs that preload Mermaid source from the `mmd` query parameter.
+- Copy a shareable link for the current Mermaid source.
 - Copy or download rendered SVG output.
 - Download PNG output for diagrams that browser canvas security allows.
 - Persist recent source and settings in localStorage.
@@ -104,6 +106,8 @@ After changes that affect the browser workflow, verify:
 - The default sample renders.
 - Fenced and unfenced Mermaid source render.
 - Theme changes re-render the diagram.
+- `?mmd=` shared links preload and render Mermaid source.
+- Copy Link writes a shareable URL for the current Mermaid source.
 - SVG copy/download works.
 - PNG download works where browser security allows.
 - Settings survive refresh through localStorage.

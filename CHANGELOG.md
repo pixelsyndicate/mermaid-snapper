@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0 - 2026-06-22
+
+- Added shareable Mermaid Snapper links with `?mmd=` URL import.
+- Added a Copy Link action that encodes the current Mermaid source into a shareable URL.
+
 ## 0.2.4 - 2026-06-18
 
 - Right-aligned the preview Tips control, changed it from `?` to `i`, and widened the tip popover.

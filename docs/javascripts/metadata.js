@@ -8,8 +8,8 @@
   root.MermaidSnapperMetadata = metadata;
 })(typeof window !== 'undefined' ? window : globalThis, function createMetadata() {
   return {
-    appVersion: '0.2.4',
-    releaseDate: '20260618',
+    appVersion: '0.3.0',
+    releaseDate: '20260622',
     mermaidDocsUrl: 'https://mermaid.js.org/intro/',
     repositoryUrl: 'https://github.com/pixelsyndicate/mermaid-snapper',
     pagesUrl: 'https://pixelsyndicate.github.io/mermaid-snapper/'

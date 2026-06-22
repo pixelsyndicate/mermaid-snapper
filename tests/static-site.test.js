@@ -87,7 +87,7 @@ describe('static GitHub Pages-ready site', () => {
 
     expect(metadata).toEqual(expect.objectContaining({
       appVersion: version,
-      releaseDate: expect.stringMatching(/^\d{8}$/),
+      releaseDate: '20260622',
       mermaidDocsUrl: 'https://mermaid.js.org/intro/',
       repositoryUrl: 'https://github.com/pixelsyndicate/mermaid-snapper',
       pagesUrl: 'https://pixelsyndicate.github.io/mermaid-snapper/'
@@ -183,6 +183,24 @@ describe('static GitHub Pages-ready site', () => {
     });
   });
 
+  test('shared Mermaid URLs can be imported and copied', () => {
+    const html = readSiteFile('index.html');
+    const appJs = readSiteFile('javascripts/app.js');
+    const utilsJs = readSiteFile('javascripts/utils.js');
+
+    expect(html).toContain('<button id="copyLinkBtn" type="button">Copy Link</button>');
+    expect(appJs).toContain("const copyLinkButton = document.getElementById('copyLinkBtn');");
+    expect(appJs).toContain('const params = new URLSearchParams(window.location.search);');
+    expect(appJs).toContain("params.has('mmd')");
+    expect(appJs).toContain("decodeMermaidSourceFromUrl(params.get('mmd'))");
+    expect(appJs).toContain('restore(sharedSource && sharedSource.ok ? sharedSource.source : null);');
+    expect(appJs).toContain("sampleSelect.value = hasImportedSource || savedSource ? 'last' : 'dashboard';");
+    expect(appJs).toContain("url.searchParams.set('mmd', encodeMermaidSourceForUrl(source));");
+    expect(appJs).toContain("setStatus('Link copied');");
+    expect(utilsJs).toContain('function encodeMermaidSourceForUrl(source)');
+    expect(utilsJs).toContain('function decodeMermaidSourceFromUrl(encodedSource)');
+  });
+
   test('Jekyll processing is disabled for branch-based Pages publishing', () => {
     expect(fs.existsSync(path.join(siteRoot, '.nojekyll'))).toBe(true);
   });
@@ -235,7 +253,8 @@ describe('static GitHub Pages-ready site', () => {
     expect(html).toContain('Hold Ctrl and use the mouse wheel over the preview to change Scale in 5% steps.');
     expect(html).not.toContain('App type');
     expect(html).not.toContain('Static browser app');
-    expect(html).toContain('Render Mermaid source from pasted code or bundled samples');
+    expect(html).toContain('Render Mermaid source from pasted code, bundled samples, or shared diagram links');
+    expect(html).toContain('Copy Link creates a shareable Mermaid Snapper URL.');
     expect(html).toContain('PNG export may be disabled when browser security blocks SVG-to-canvas export.');
     expect(html).toContain('https://github.com/pixelsyndicate/mermaid-snapper');
     expect(html).toContain('https://pixelsyndicate.github.io/mermaid-snapper/');
