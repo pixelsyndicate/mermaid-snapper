@@ -3,6 +3,7 @@ const {
   createPngExportSource,
   createSvgDownloadBlob,
   decodeMermaidSourceFromUrl,
+  ensureMermaidCodeFence,
   encodeMermaidSourceForUrl,
   PNG_DOWNLOAD,
   prepareSourceForPngExport,
@@ -27,6 +28,28 @@ describe('client utility behavior', () => {
     const source = 'flowchart LR\n  Start --> Finish';
 
     expect(stripCodeFence(source)).toBe(source);
+  });
+
+  test('wraps unfenced Mermaid source in a Mermaid code fence', () => {
+    const source = 'flowchart LR\n  Start --> Finish';
+
+    expect(ensureMermaidCodeFence(source)).toBe([
+      '```mermaid',
+      'flowchart LR',
+      '  Start --> Finish',
+      '```'
+    ].join('\n'));
+  });
+
+  test('preserves existing Mermaid code fences', () => {
+    const source = [
+      '```mermaid',
+      'flowchart TD',
+      '  A --> B',
+      '```'
+    ].join('\n');
+
+    expect(ensureMermaidCodeFence(source)).toBe(source);
   });
 
   test('clamps invalid numeric settings to defaults', () => {

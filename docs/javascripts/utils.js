@@ -22,6 +22,20 @@
     return match ? match[1].trim() : trimmed;
   }
 
+  function ensureMermaidCodeFence(source) {
+    const trimmed = String(source || '').trim();
+
+    if (!trimmed) {
+      return '';
+    }
+
+    if (/^```\s*(?:mermaid)?\s*[\s\S]*?```$/i.test(trimmed)) {
+      return trimmed;
+    }
+
+    return `\`\`\`mermaid\n${trimmed}\n\`\`\``;
+  }
+
   function clampNumber(value, min, max, fallback) {
     const parsed = Number(value);
 
@@ -103,6 +117,7 @@
 
   return {
     decodeMermaidSourceFromUrl,
+    ensureMermaidCodeFence,
     encodeMermaidSourceForUrl,
     createPngExportSource,
     createSvgDownloadBlob,

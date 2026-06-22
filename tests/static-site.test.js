@@ -58,14 +58,24 @@ describe('static GitHub Pages-ready site', () => {
 
   test('header includes Mermaid documentation link', () => {
     const html = readSiteFile('index.html');
+    const css = readSiteFile('stylesheets/app.css');
+    const appJs = readSiteFile('javascripts/app.js');
 
     expect(html).toContain('test, preview and capture mermaid.js diagrams');
+    expect(html).toContain('class="home-link logo-link" data-home-link href="https://pixelsyndicate.github.io/mermaid-snapper/"');
+    expect(html).toContain('class="home-link title-link" data-home-link href="https://pixelsyndicate.github.io/mermaid-snapper/"');
+    expect(html).toContain('aria-label="Mermaid Snapper home"');
     expect(html).toContain('id="helpBtn"');
     expect(html).toContain('aria-controls="helpDialog"');
     expect(html).toContain('aria-haspopup="dialog"');
     expect(html).toContain(
       '<a class="version" id="mermaidDocsLink" href="https://mermaid.js.org/intro/" target="_blank" rel="noopener noreferrer">Mermaid 11.15.0</a>'
     );
+    expect(css).toContain('.home-link');
+    expect(css).toContain('text-decoration: none;');
+    expect(css).toContain('.home-link:focus-visible');
+    expect(appJs).toContain("const homeLinks = document.querySelectorAll('[data-home-link]');");
+    expect(appJs).toContain('...Array.from(homeLinks, (link) => [link, metadata.pagesUrl]),');
   });
 
   test('header Mermaid version matches package dependency', () => {
@@ -193,10 +203,14 @@ describe('static GitHub Pages-ready site', () => {
     expect(appJs).toContain('const params = new URLSearchParams(window.location.search);');
     expect(appJs).toContain("params.has('mmd')");
     expect(appJs).toContain("decodeMermaidSourceFromUrl(params.get('mmd'))");
-    expect(appJs).toContain('restore(sharedSource && sharedSource.ok ? sharedSource.source : null);');
+    expect(appJs).toContain('restore(sharedSource && sharedSource.ok ? ensureMermaidCodeFence(sharedSource.source) : null);');
     expect(appJs).toContain("sampleSelect.value = hasImportedSource || savedSource ? 'last' : 'dashboard';");
+    expect(appJs).toContain('const source = ensureMermaidCodeFence(sourceEl.value);');
     expect(appJs).toContain("url.searchParams.set('mmd', encodeMermaidSourceForUrl(source));");
+    expect(appJs).toContain("url.searchParams.delete('mmd');");
+    expect(appJs).toContain('window.history.replaceState({}, document.title, url.toString());');
     expect(appJs).toContain("setStatus('Link copied');");
+    expect(utilsJs).toContain('function ensureMermaidCodeFence(source)');
     expect(utilsJs).toContain('function encodeMermaidSourceForUrl(source)');
     expect(utilsJs).toContain('function decodeMermaidSourceFromUrl(encodedSource)');
   });

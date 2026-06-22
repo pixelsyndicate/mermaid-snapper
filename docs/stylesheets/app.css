@@ -73,6 +73,22 @@ header {
   flex: 0 0 auto;
 }
 
+.home-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.home-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.logo-link,
+.title-link {
+  display: inline-flex;
+  align-items: center;
+}
+
 .logo {
   display: block;
   width: 80px;

@@ -4,6 +4,7 @@
     createPngExportSource,
     createSvgDownloadBlob,
     decodeMermaidSourceFromUrl,
+    ensureMermaidCodeFence,
     encodeMermaidSourceForUrl,
     PNG_DOWNLOAD,
     SVG_DOWNLOAD,
@@ -45,6 +46,7 @@
   const helpOkButton = document.getElementById('helpOkBtn');
   const appVersionEl = document.getElementById('appVersion');
   const aboutAppVersionEl = document.getElementById('aboutAppVersion');
+  const homeLinks = document.querySelectorAll('[data-home-link]');
   const mermaidDocsLink = document.getElementById('mermaidDocsLink');
   const aboutMermaidDocsLink = document.getElementById('aboutMermaidDocsLink');
   const repositoryLink = document.getElementById('repositoryLink');
@@ -180,6 +182,7 @@
     const versionText = metadata.appVersion ? `v${metadata.appVersion}` : '';
     const releaseText = metadata.releaseDate ? ` (${metadata.releaseDate})` : '';
     const linkTargets = [
+      ...Array.from(homeLinks, (link) => [link, metadata.pagesUrl]),
       [mermaidDocsLink, metadata.mermaidDocsUrl],
       [aboutMermaidDocsLink, metadata.mermaidDocsUrl],
       [repositoryLink, metadata.repositoryUrl],
@@ -329,6 +332,17 @@
     }
 
     return decodeMermaidSourceFromUrl(params.get('mmd'));
+  }
+
+  function clearSharedSourceFromUrl() {
+    const url = new URL(window.location.href);
+
+    if (!url.searchParams.has('mmd')) {
+      return;
+    }
+
+    url.searchParams.delete('mmd');
+    window.history.replaceState({}, document.title, url.toString());
   }
 
   function getMermaidConfig(htmlLabels) {
@@ -541,7 +555,7 @@
 
   async function copyShareLink() {
     try {
-      const source = sourceEl.value;
+      const source = ensureMermaidCodeFence(sourceEl.value);
       const url = new URL(window.location.href);
       url.searchParams.set('mmd', encodeMermaidSourceForUrl(source));
       await navigator.clipboard.writeText(url.toString());
@@ -553,6 +567,7 @@
 
   sampleSelect.addEventListener('change', () => {
     const value = sampleSelect.value;
+    clearSharedSourceFromUrl();
     sourceEl.value = value === 'last' ? localStorage.getItem(storageKeys.source) || samples.dashboard : samples[value] || '';
     persist();
     renderMermaid();
@@ -560,6 +575,7 @@
 
   document.getElementById('renderBtn').addEventListener('click', renderMermaid);
   document.getElementById('clearBtn').addEventListener('click', () => {
+    clearSharedSourceFromUrl();
     sourceEl.value = '';
     sampleSelect.value = 'blank';
     persist();
@@ -637,6 +653,7 @@
   });
 
   sourceEl.addEventListener('input', () => {
+    clearSharedSourceFromUrl();
     sampleSelect.value = 'last';
     persist();
   });
@@ -718,7 +735,7 @@
 
   applyMetadata();
   const sharedSource = getSharedSourceFromUrl();
-  restore(sharedSource && sharedSource.ok ? sharedSource.source : null);
+  restore(sharedSource && sharedSource.ok ? ensureMermaidCodeFence(sharedSource.source) : null);
   const initialRender = renderMermaid();
 
   if (sharedSource && !sharedSource.ok) {

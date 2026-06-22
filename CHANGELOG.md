@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1 - 2026-06-22
+
+- Linked the header logo and title to the hosted app root for a quick Home action that clears shared-link URLs.
+- Display shared Mermaid URL imports inside Mermaid code fences for consistency with copied examples.
+- Clear stale `mmd` query values when changing samples, clearing, or editing source.
+
 ## 0.3.0 - 2026-06-22
 
 - Added shareable Mermaid Snapper links with `?mmd=` URL import.
