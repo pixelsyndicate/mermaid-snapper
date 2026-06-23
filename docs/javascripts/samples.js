@@ -47,6 +47,114 @@ Batch child-operation analysis for grouped endpoints\`"]
   C -->|"platform"| E
   G -->|"validates readiness for"| A
 \`\`\``,
+  mermaidSnapper: `\`\`\`mermaid
+flowchart LR
+  subgraph Legend[" "]
+    direction TB
+    LInput["input"]
+    LApp["app logic"]
+    LMermaid["mermaid.js"]
+    LAction["user/browser operation"]
+    LOutput["output"]
+  end
+
+  subgraph Inputs["Diagram source inputs"]
+    Query["Shared URL ?mmd=..."]
+    Storage["Browser localStorage"]
+    Sample["Sample selector"]
+    Paste["User pasted source"]
+  end
+
+  subgraph Editor["Editor state"]
+    Decode["Decode shared source"]
+    Restore["Restore saved source"]
+    LoadSample["Load bundled sample"]
+    TextArea["Mermaid source textbox"]
+    RenderClick["Render button"]
+  end
+
+  subgraph Render["Render pipeline"]
+    Persist["Persist source and settings"]
+    StripFence["Strip Mermaid code fence"]
+    Config["\`Build Mermaid config
+theme, look, labels\`"]
+    Parse["mermaid.parse(source)"]
+    RenderSvg["mermaid.render(id, source)"]
+  end
+
+  subgraph Preview["Preview and artboard"]
+    SvgResponse["Rendered SVG response"]
+    InsertSvg["Insert SVG into preview"]
+    Measure["Measure visible SVG content bounds"]
+    Trim["Trim SVG viewBox to content"]
+    SizeArtboard["Size capture area
+content + padding"]
+    ApplyDisplay["Apply scale and background"]
+    PreviewReady["Preview ready"]
+  end
+
+  subgraph Actions["User actions after render"]
+    Fit["Fit preview"]
+    CopyLink["Copy Link"]
+    CopySvg["Copy SVG"]
+    DownloadSvg["Download SVG"]
+    DownloadPng["Download PNG"]
+  end
+
+  Query --> Decode --> TextArea
+  Storage --> Restore --> TextArea
+  Sample --> LoadSample --> TextArea
+  Paste --> TextArea
+  TextArea --> RenderClick
+
+  RenderClick --> Persist
+  Persist --> StripFence
+  StripFence --> Config
+  Config --> Parse
+  Parse --> RenderSvg
+  RenderSvg --> SvgResponse
+
+  SvgResponse --> InsertSvg
+  InsertSvg --> Measure
+  Measure --> Trim
+  Trim --> SizeArtboard
+  SizeArtboard --> ApplyDisplay
+  ApplyDisplay --> PreviewReady
+
+  PreviewReady --> Fit
+  PreviewReady --> CopyLink
+  PreviewReady --> CopySvg
+  PreviewReady --> DownloadSvg
+  PreviewReady --> DownloadPng
+
+  CopyLink --> Encode["Encode current source as ?mmd="]
+  Encode --> ShareClipboard["Write share URL to clipboard"]
+
+  CopySvg --> SerializeCopy["Serialize rendered SVG markup"]
+  SerializeCopy --> SvgClipboard["Write SVG text to clipboard"]
+
+  DownloadSvg --> SerializeDownload["Serialize rendered SVG markup"]
+  SerializeDownload --> SvgBlob["Create SVG Blob"]
+  SvgBlob --> SvgFile["Download SVG file"]
+
+  DownloadPng --> PngRender["Render export-safe SVG"]
+  PngRender --> Canvas["Draw SVG to browser canvas"]
+  Canvas --> PngFile["Download PNG if canvas is allowed"]
+
+  classDef input fill:#e0f2fe,stroke:#0284c7,color:#0f172a
+  classDef app fill:#eef2ff,stroke:#6366f1,color:#0f172a
+  classDef mermaid fill:#dcfce7,stroke:#16a34a,color:#0f172a
+  classDef output fill:#fef9c3,stroke:#ca8a04,color:#0f172a
+  classDef action fill:#fce7f3,stroke:#db2777,color:#0f172a
+  classDef legendGroup fill:transparent,stroke:transparent,color:transparent
+
+  class Query,Storage,Sample,Paste,LInput input
+  class Decode,Restore,LoadSample,TextArea,RenderClick,Persist,StripFence,Config,Measure,Trim,SizeArtboard,ApplyDisplay,SerializeCopy,SerializeDownload,SvgBlob,LApp app
+  class Parse,RenderSvg,SvgResponse,PngRender,LMermaid mermaid
+  class PreviewReady,ShareClipboard,SvgClipboard,SvgFile,PngFile,LOutput output
+  class Fit,CopyLink,CopySvg,DownloadSvg,DownloadPng,Encode,Canvas,LAction action
+  class Legend legendGroup
+\`\`\``,
   orders: `\`\`\`mermaid
 flowchart TD
   A["\`Customer Order Portal

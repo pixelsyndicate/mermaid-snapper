@@ -97,7 +97,7 @@ describe('static GitHub Pages-ready site', () => {
 
     expect(metadata).toEqual(expect.objectContaining({
       appVersion: version,
-      releaseDate: '20260622',
+      releaseDate: '20260623',
       mermaidDocsUrl: 'https://mermaid.js.org/intro/',
       repositoryUrl: 'https://github.com/pixelsyndicate/mermaid-snapper',
       pagesUrl: 'https://pixelsyndicate.github.io/mermaid-snapper/'
@@ -112,7 +112,7 @@ describe('static GitHub Pages-ready site', () => {
     expect(changelog).toContain(`## ${version} - `);
   });
 
-  test('diagram and display controls are grouped separately', () => {
+  test('diagram and preview controls are grouped separately', () => {
     const html = readSiteFile('index.html');
 
     expect(html).toContain('<fieldset class="control-group diagram-options">');
@@ -125,13 +125,23 @@ describe('static GitHub Pages-ready site', () => {
     expect(html).toContain('<option value="handDrawn">Hand drawn</option>');
     expect(html.match(/<select id="lookSelect">([\s\S]*?)<\/select>/)[1]).not.toContain('value="default"');
     expect(html).not.toContain('id="layoutSelect"');
-    expect(html).toContain('<fieldset class="control-group display-options">');
-    expect(html).toContain('<legend>Display options</legend>');
-    expect(html).toContain('for="widthInput">Width</label>');
-    expect(html).toContain('for="scaleInput">Scale</label>');
-    expect(html).toContain('data-step-target="widthInput"');
-    expect(html).toContain('data-step-target="scaleInput"');
     expect(html).toContain('for="bgInput">Background</label>');
+    expect(html).not.toContain('<fieldset class="control-group display-options">');
+    expect(html).not.toContain('<legend>Display options</legend>');
+    expect(html).not.toContain('for="widthInput">Width</label>');
+    expect(html).not.toContain('id="widthInput"');
+    expect(html).not.toContain('data-step-target="widthInput"');
+    expect(html).toContain('for="scaleInput">Scale</label>');
+    expect(html).toContain('type="range" min="40" max="500" step="5" value="100"');
+    expect(html).toContain('<output id="scaleValue" for="scaleInput">100%</output>');
+    expect(html).not.toContain('data-step-target="scaleInput"');
+    expect(html).toContain('<fieldset class="control-group preview-controls">');
+    expect(html).toContain('<legend>Preview controls</legend>');
+    expect(html).toContain('id="fitPreviewBtn"');
+    expect(html).toContain('id="actualSizeBtn"');
+    expect(html).not.toContain('id="zoomOutBtn"');
+    expect(html).not.toContain('id="zoomInBtn"');
+    expect(html).toContain('id="resetPanBtn"');
   });
 
   test('stacked layout keeps editor alerts visible below the textarea', () => {
@@ -151,8 +161,10 @@ describe('static GitHub Pages-ready site', () => {
     expect(css).toContain('@media (max-width: 767.98px)');
     expect(css).toContain('.header-title p,');
     expect(css).toContain('.export-controls button');
-    expect(css).toContain('.number-stepper');
-    expect(css).toContain('.step-button');
+    expect(css).not.toContain('.number-stepper');
+    expect(css).not.toContain('.step-button');
+    expect(css).toContain('.scale-control');
+    expect(css).toContain('.preview-controls');
     expect(css).toContain('.tips-control');
     expect(css).toContain('.tips-popover');
     expect(css).toContain('.export-controls');
@@ -165,12 +177,27 @@ describe('static GitHub Pages-ready site', () => {
     expect(js).toContain("stackedSplit: 'mermaid-helper-stacked-split'");
     expect(js).toContain('Resize editor and preview rows');
     expect(js).toContain('function updateSplitFromClientY(clientY)');
-    expect(js).toContain('function getEditableNumber(input)');
-    expect(js).toContain('commit: false');
-    expect(js).toContain("document.querySelectorAll('[data-step-target]')");
+    expect(js).toContain('function autoSizeArtboard()');
+    expect(js).toContain('function getRenderedSvgBounds(svg)');
+    expect(js).toContain('function trimSvgToBounds(svg, bounds)');
+    expect(js).toContain('const box = svg.getBBox();');
+    expect(js.indexOf('const box = svg.getBBox();')).toBeLessThan(js.indexOf("const viewBox = svg.getAttribute('viewBox');"));
+    expect(js).toContain("svg.setAttribute('viewBox', `${bounds.x || 0} ${bounds.y || 0} ${width} ${height}`);");
+    expect(js).toContain("svg.setAttribute('width', String(Math.ceil(width)));");
+    expect(js).toContain('trimSvgToBounds(svg, bounds);');
+    expect(js).toContain('const ARTBOARD_PADDING = 32;');
+    expect(js).not.toContain('widthInput');
+    expect(js).not.toContain("document.querySelectorAll('[data-step-target]')");
+    expect(js).toContain('function fitPreviewToDiagram()');
+    expect(js).toContain('function setPreviewScale(scale, options = {})');
+    expect(js).toContain('isTemporaryFitScale');
+    expect(js).toContain("fitPreviewButton.addEventListener('click', fitPreviewToDiagram);");
+    expect(js).toContain("resetPanButton.addEventListener('click', resetPreviewPan);");
+    expect(js).not.toContain('zoomOutButton');
+    expect(js).not.toContain('zoomInButton');
     expect(js).not.toContain('input.focus();');
     expect(js).toContain('const stackedSplitLimits = {');
-    expect(js).toContain('min: 180');
+    expect(js).toContain('min: 0');
     expect(js).toContain("splitter.setAttribute('aria-valuemin', String(stackedSplitLimits.min));");
     expect(js).toContain('stacked ? applyStackedSplit(stackedSplitLimits.min) : applySplit(25);');
     expect(js).toContain("const previewShell = document.querySelector('.preview-shell');");
@@ -264,7 +291,9 @@ describe('static GitHub Pages-ready site', () => {
     expect(html).toContain('App version');
     expect(html).toContain('Mermaid library');
     expect(html).toContain('Mouse Controls');
+    expect(html).toContain('Preview Controls');
     expect(html).toContain('Hold Ctrl and use the mouse wheel over the preview to change Scale in 5% steps.');
+    expect(html).toContain('Use Fit, the Scale slider, 100%, and Reset to frame large diagrams without relying on mouse gestures.');
     expect(html).not.toContain('App type');
     expect(html).not.toContain('Static browser app');
     expect(html).toContain('Render Mermaid source from pasted code, bundled samples, or shared diagram links');

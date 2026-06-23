@@ -16,7 +16,6 @@
     source: 'mermaid-helper-source',
     theme: 'mermaid-helper-theme',
     look: 'mermaid-helper-look',
-    width: 'mermaid-helper-width',
     scale: 'mermaid-helper-scale',
     background: 'mermaid-helper-background',
     split: 'mermaid-helper-split',
@@ -28,8 +27,8 @@
   const sampleSelect = document.getElementById('sampleSelect');
   const themeSelect = document.getElementById('themeSelect');
   const lookSelect = document.getElementById('lookSelect');
-  const widthInput = document.getElementById('widthInput');
   const scaleInput = document.getElementById('scaleInput');
+  const scaleValue = document.getElementById('scaleValue');
   const bgInput = document.getElementById('bgInput');
   const splitter = document.getElementById('splitter');
   const captureArea = document.getElementById('captureArea');
@@ -39,6 +38,9 @@
   const statusEl = document.getElementById('status');
   const pngButton = document.getElementById('downloadPngBtn');
   const copyLinkButton = document.getElementById('copyLinkBtn');
+  const fitPreviewButton = document.getElementById('fitPreviewBtn');
+  const actualSizeButton = document.getElementById('actualSizeBtn');
+  const resetPanButton = document.getElementById('resetPanBtn');
   const helpButton = document.getElementById('helpBtn');
   const helpBackdrop = document.getElementById('helpBackdrop');
   const helpDialog = document.getElementById('helpDialog');
@@ -51,12 +53,10 @@
   const aboutMermaidDocsLink = document.getElementById('aboutMermaidDocsLink');
   const repositoryLink = document.getElementById('repositoryLink');
   const pagesLink = document.getElementById('pagesLink');
-  const numericSettings = new Map([
-    [widthInput, { min: 360, max: 2400, fallback: 960, step: 20 }],
-    [scaleInput, { min: 40, max: 500, fallback: 100, step: 5 }]
-  ]);
+  const ARTBOARD_PADDING = 32;
+  const scaleSetting = { min: 40, max: 500, fallback: 100, step: 5 };
   const stackedSplitLimits = {
-    min: 180,
+    min: 0,
     max: 640,
     fallback: 340
   };
@@ -76,59 +76,170 @@
   };
   let isExportingPng = false;
   let lastRenderedStatus = '';
+  let previewScalePercent = 100;
+  let isTemporaryFitScale = false;
   let pngExportSupport = {
     checked: false,
     supported: true,
     reason: ''
   };
 
-  function getEditableNumber(input) {
-    const setting = numericSettings.get(input);
-    const value = String(input.value || '').trim();
-    const parsed = Number(value);
-
-    if (!setting || !value || !Number.isFinite(parsed) || parsed < setting.min || parsed > setting.max) {
-      return null;
-    }
-
-    return parsed;
-  }
-
-  function applyPreviewSettings(options = {}) {
-    const commit = options.commit !== false;
-    const width = commit
-      ? clampNumber(widthInput.value, 360, 2400, 960)
-      : getEditableNumber(widthInput);
-    const scale = commit
-      ? clampNumber(scaleInput.value, 40, 500, 100)
-      : getEditableNumber(scaleInput);
-
-    if (width === null || scale === null) {
-      return false;
-    }
-
+  function applyPreviewSettings() {
+    const scale = clampNumber(scaleInput.value, scaleSetting.min, scaleSetting.max, scaleSetting.fallback);
     const scaleFactor = scale / 100;
+    previewScalePercent = scale;
+    scaleInput.value = scale;
 
-    if (commit) {
-      widthInput.value = width;
-      scaleInput.value = scale;
-    }
-
-    captureArea.style.width = `${width}px`;
+    scaleValue.textContent = `${scale}%`;
+    scaleValue.classList.toggle('is-temporary', isTemporaryFitScale);
+    scaleValue.title = isTemporaryFitScale ? 'Temporary fit scale' : 'Scale';
     captureArea.style.backgroundColor = bgInput.value || '#ffffff';
     captureArea.style.transform = `scale(${scaleFactor})`;
-    captureArea.style.marginRight = scaleFactor <= 1 ? '0' : `${width * (scaleFactor - 1)}px`;
+    captureArea.style.marginRight = scaleFactor <= 1 ? '0' : `${captureArea.offsetWidth * (scaleFactor - 1)}px`;
     captureArea.style.marginBottom = scaleFactor <= 1 ? '0' : `${captureArea.offsetHeight * (scaleFactor - 1)}px`;
     return true;
   }
 
-  function updateNumericInput(input, direction) {
-    const setting = numericSettings.get(input);
-    const parsed = Number(input.value);
-    const current = Number.isFinite(parsed) ? parsed : setting.fallback;
-    input.value = clampNumber(current + (setting.step * direction), setting.min, setting.max, setting.fallback);
+  function setPreviewScale(scale, options = {}) {
+    isTemporaryFitScale = options.temporary === true;
+    scaleInput.value = clampNumber(scale, scaleSetting.min, scaleSetting.max, scaleSetting.fallback);
     applyPreviewSettings();
-    persist();
+    if (!isTemporaryFitScale) {
+      persist();
+    }
+  }
+
+  function stepPreviewScale(direction) {
+    const current = Number.isFinite(previewScalePercent) ? previewScalePercent : scaleSetting.fallback;
+    setPreviewScale(current + (scaleSetting.step * direction));
+  }
+
+  function resetPreviewPan() {
+    previewShell.scrollTo({
+      left: 0,
+      top: 0,
+      behavior: 'smooth'
+    });
+  }
+
+  function getVisibleDiagramSize() {
+    if (!getSvgElement()) {
+      return null;
+    }
+
+    const scaleFactor = Math.max(previewScalePercent / 100, 0.01);
+    return {
+      width: captureArea.offsetWidth / scaleFactor,
+      height: captureArea.offsetHeight / scaleFactor
+    };
+  }
+
+  function getRenderedSvgBounds(svg) {
+    const ignoredTags = new Set(['defs', 'desc', 'metadata', 'style', 'title']);
+    const boxes = Array.from(svg.children)
+      .filter((child) => !ignoredTags.has(child.tagName.toLowerCase()) && typeof child.getBBox === 'function')
+      .map((child) => {
+        try {
+          return child.getBBox();
+        } catch (error) {
+          return null;
+        }
+      })
+      .filter((box) => box && box.width > 0 && box.height > 0);
+
+    if (boxes.length > 0) {
+      const x1 = Math.min(...boxes.map((box) => box.x));
+      const y1 = Math.min(...boxes.map((box) => box.y));
+      const x2 = Math.max(...boxes.map((box) => box.x + box.width));
+      const y2 = Math.max(...boxes.map((box) => box.y + box.height));
+
+      return {
+        x: x1,
+        y: y1,
+        width: x2 - x1,
+        height: y2 - y1
+      };
+    }
+
+    try {
+      const box = svg.getBBox();
+      if (box.width > 0 && box.height > 0) {
+        return {
+          x: box.x,
+          y: box.y,
+          width: box.width,
+          height: box.height
+        };
+      }
+    } catch (error) {
+      // Some SVGs cannot be measured until attached and painted; fall back below.
+    }
+
+    const viewBox = svg.getAttribute('viewBox');
+    const viewBoxParts = viewBox ? viewBox.trim().split(/\s+/).map(Number) : [];
+
+    if (viewBoxParts.length === 4 && viewBoxParts.every(Number.isFinite) && viewBoxParts[2] > 0 && viewBoxParts[3] > 0) {
+      return {
+        x: viewBoxParts[0],
+        y: viewBoxParts[1],
+        width: viewBoxParts[2],
+        height: viewBoxParts[3]
+      };
+    }
+
+    const rect = svg.getBoundingClientRect();
+    return {
+      x: 0,
+      y: 0,
+      width: Math.max(1, rect.width / Math.max(previewScalePercent / 100, 0.01)),
+      height: Math.max(1, rect.height / Math.max(previewScalePercent / 100, 0.01))
+    };
+  }
+
+  function trimSvgToBounds(svg, bounds) {
+    const width = Math.max(1, bounds.width);
+    const height = Math.max(1, bounds.height);
+
+    svg.setAttribute('viewBox', `${bounds.x || 0} ${bounds.y || 0} ${width} ${height}`);
+    svg.setAttribute('width', String(Math.ceil(width)));
+    svg.setAttribute('height', String(Math.ceil(height)));
+    svg.style.maxWidth = 'none';
+  }
+
+  function autoSizeArtboard() {
+    const svg = getSvgElement();
+
+    if (!svg) {
+      captureArea.style.width = '';
+      return;
+    }
+
+    const bounds = getRenderedSvgBounds(svg);
+    trimSvgToBounds(svg, bounds);
+    const artboardWidth = Math.ceil(bounds.width + (ARTBOARD_PADDING * 2));
+
+    captureArea.style.width = `${artboardWidth}px`;
+    applyPreviewSettings();
+  }
+
+  function fitPreviewToDiagram() {
+    const diagramSize = getVisibleDiagramSize();
+
+    if (!diagramSize) {
+      setStatus('Render a diagram before fitting the preview');
+      return;
+    }
+
+    const availableWidth = Math.max(1, previewShell.clientWidth - 36);
+    const availableHeight = Math.max(1, previewShell.clientHeight - 36);
+    const targetWidth = diagramSize.width + 64;
+    const targetHeight = diagramSize.height + 64;
+    const rawScale = Math.min(availableWidth / targetWidth, availableHeight / targetHeight) * 100;
+    const fittedScale = Math.floor(clampNumber(rawScale, scaleSetting.min, scaleSetting.max, scaleSetting.fallback) / scaleSetting.step) * scaleSetting.step;
+
+    setPreviewScale(fittedScale, { temporary: true });
+    resetPreviewPan();
+    setStatus(`Fit preview at ${fittedScale}%`);
   }
 
   function startPreviewPan(event) {
@@ -175,7 +286,7 @@
     }
 
     event.preventDefault();
-    updateNumericInput(scaleInput, event.deltaY < 0 ? 1 : -1);
+    stepPreviewScale(event.deltaY < 0 ? 1 : -1);
   }
 
   function applyMetadata() {
@@ -300,8 +411,9 @@
     localStorage.setItem(storageKeys.source, sourceEl.value);
     localStorage.setItem(storageKeys.theme, themeSelect.value);
     localStorage.setItem(storageKeys.look, lookSelect.value);
-    localStorage.setItem(storageKeys.width, widthInput.value);
-    localStorage.setItem(storageKeys.scale, scaleInput.value);
+    if (!isTemporaryFitScale) {
+      localStorage.setItem(storageKeys.scale, scaleInput.value);
+    }
     localStorage.setItem(storageKeys.background, bgInput.value);
     localStorage.setItem(storageKeys.split, String(Math.round(splitPercent)));
     localStorage.setItem(storageKeys.stackedSplit, String(Math.round(stackedEditorHeight)));
@@ -314,8 +426,8 @@
     sourceEl.value = hasImportedSource ? importedSource : savedSource || samples.dashboard;
     themeSelect.value = localStorage.getItem(storageKeys.theme) || 'default';
     lookSelect.value = savedLook && savedLook !== 'default' ? savedLook : 'classic';
-    widthInput.value = localStorage.getItem(storageKeys.width) || '960';
     scaleInput.value = localStorage.getItem(storageKeys.scale) || '100';
+    isTemporaryFitScale = false;
     bgInput.value = localStorage.getItem(storageKeys.background) || '#ffffff';
     sampleSelect.value = hasImportedSource || savedSource ? 'last' : 'dashboard';
     applySplit(localStorage.getItem(storageKeys.split) || 42);
@@ -383,6 +495,8 @@
       const result = await mermaid.render(`mermaid-render-${Date.now()}-${renderCount}`, source);
       currentSvgText = result.svg;
       diagramEl.innerHTML = result.svg;
+      autoSizeArtboard();
+      resetPreviewPan();
       setRenderedStatus();
       detectPngExportSupport(source);
     } catch (error) {
@@ -617,39 +731,11 @@
     persist();
   });
 
-  [widthInput, scaleInput].forEach((control) => {
-    control.addEventListener('change', () => {
-      const canPreview = applyPreviewSettings({
-        commit: document.activeElement !== control
-      });
-      if (canPreview) {
-        persist();
-      }
-    });
-    control.addEventListener('input', () => {
-      if (applyPreviewSettings({ commit: false })) {
-        persist();
-      }
-    });
-    control.addEventListener('blur', () => {
-      applyPreviewSettings();
-      persist();
-    });
-    control.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') {
-        control.blur();
-      }
-    });
+  scaleInput.addEventListener('input', () => {
+    setPreviewScale(scaleInput.value);
   });
-
-  document.querySelectorAll('[data-step-target]').forEach((button) => {
-    button.addEventListener('click', () => {
-      const target = document.getElementById(button.dataset.stepTarget);
-      const direction = Number(button.dataset.stepDirection);
-      if (target && numericSettings.has(target)) {
-        updateNumericInput(target, direction);
-      }
-    });
+  scaleInput.addEventListener('change', () => {
+    setPreviewScale(scaleInput.value);
   });
 
   sourceEl.addEventListener('input', () => {
@@ -663,6 +749,9 @@
   previewShell.addEventListener('pointerup', stopPreviewPan);
   previewShell.addEventListener('pointercancel', stopPreviewPan);
   previewShell.addEventListener('wheel', scalePreviewWithWheel, { passive: false });
+  fitPreviewButton.addEventListener('click', fitPreviewToDiagram);
+  actualSizeButton.addEventListener('click', () => setPreviewScale(100));
+  resetPanButton.addEventListener('click', resetPreviewPan);
 
   splitter.addEventListener('pointerdown', (event) => {
     isDraggingSplit = true;

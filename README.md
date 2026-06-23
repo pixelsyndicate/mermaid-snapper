@@ -4,7 +4,7 @@ test, preview and capture mermaid.js diagrams
 
 Static browser app for rendering Mermaid source into a clean preview that can be copied, downloaded, screenshotted, and pasted into documentation systems.
 
-Current app version: `0.3.1`
+Current app version: `0.4.0`
 
 Open the hosted app: <https://pixelsyndicate.github.io/mermaid-snapper/>
 
@@ -17,7 +17,7 @@ The app is plain HTML, CSS, and JavaScript under `docs/`, with Node.js used only
 - Render fenced or unfenced Mermaid source in the browser.
 - Choose from bundled Mermaid sample diagrams.
 - Switch Mermaid themes and looks.
-- Adjust display width, scale, and background.
+- Adjust scale and background while the preview artboard sizes itself to the rendered diagram.
 - Open shared Mermaid Snapper URLs that preload Mermaid source from the `mmd` query parameter.
 - Copy a shareable link for the current Mermaid source.
 - Use the header logo or title as a Home link back to the hosted app root.
@@ -29,7 +29,8 @@ The app is plain HTML, CSS, and JavaScript under `docs/`, with Node.js used only
 
 - Drag inside the rendered preview to pan around large or zoomed diagrams.
 - Hold `Ctrl` and use the mouse wheel over the preview to adjust Scale in 5% steps.
-- Use the Width and Scale `-` / `+` buttons for precise step changes without typing.
+- Use the preview Fit, Scale slider, 100%, and Reset controls for touch-friendly framing.
+- The preview artboard automatically sizes to the rendered diagram after each render.
 - Drag the splitter between the editor and preview to resize the workspace. In stacked tablet layouts, drag the splitter upward to give the preview more room.
 
 ## Prerequisites
@@ -111,6 +112,7 @@ After changes that affect the browser workflow, verify:
 - Imported shared links display Mermaid source inside code fences.
 - Changing samples, clearing, or editing source removes the stale `mmd` query value.
 - Copy Link writes a shareable URL for the current Mermaid source.
+- Fit, the Scale slider, 100%, and Reset controls frame the preview without mouse gestures.
 - SVG copy/download works.
 - PNG download works where browser security allows.
 - Settings survive refresh through localStorage.

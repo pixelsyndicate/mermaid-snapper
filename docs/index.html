@@ -41,6 +41,7 @@
             <select id="sampleSelect">
               <option value="last">Last saved</option>
               <option value="dashboard">Drilldown dashboard</option>
+              <option value="mermaidSnapper">Mermaid-Snapper</option>
               <option value="orders">Order fulfillment</option>
               <option value="flowchart">Writing Stages</option>
               <option value="class">Class diagram</option>
@@ -106,28 +107,23 @@
               <option value="neo">Neo</option>
               <option value="handDrawn">Hand drawn</option>
             </select>
-            </div>
-          </fieldset>
-
-          <fieldset class="control-group display-options">
-            <legend>Display options</legend>
-            <div class="controls">
-            <label for="widthInput">Width</label>
-            <div class="number-stepper">
-              <button class="step-button" type="button" data-step-target="widthInput" data-step-direction="-1" aria-label="Decrease width">-</button>
-              <input id="widthInput" type="number" inputmode="numeric" min="360" max="2400" step="20" value="960">
-              <button class="step-button" type="button" data-step-target="widthInput" data-step-direction="1" aria-label="Increase width">+</button>
-            </div>
-
-            <label for="scaleInput">Scale</label>
-            <div class="number-stepper">
-              <button class="step-button" type="button" data-step-target="scaleInput" data-step-direction="-1" aria-label="Decrease scale">-</button>
-              <input id="scaleInput" type="number" inputmode="numeric" min="40" max="500" step="5" value="100">
-              <button class="step-button" type="button" data-step-target="scaleInput" data-step-direction="1" aria-label="Increase scale">+</button>
-            </div>
 
             <label for="bgInput">Background</label>
             <input id="bgInput" type="color" value="#ffffff">
+            </div>
+          </fieldset>
+
+          <fieldset class="control-group preview-controls">
+            <legend>Preview controls</legend>
+            <div class="controls">
+              <button id="fitPreviewBtn" type="button" aria-label="Fit diagram to preview">Fit</button>
+              <label for="scaleInput">Scale</label>
+              <div class="scale-control">
+                <input id="scaleInput" type="range" min="40" max="500" step="5" value="100" aria-describedby="scaleValue">
+                <output id="scaleValue" for="scaleInput">100%</output>
+              </div>
+              <button id="actualSizeBtn" type="button" aria-label="Set preview scale to 100%">100%</button>
+              <button id="resetPanBtn" type="button" aria-label="Reset preview pan">Reset</button>
             </div>
           </fieldset>
 
@@ -194,7 +190,12 @@
 
         <section>
           <h3>What It Does</h3>
-          <p>Render Mermaid source from pasted code, bundled samples, or shared diagram links, then adjust Theme, Look, Width, Scale, and Background for preview and capture.</p>
+          <p>Render Mermaid source from pasted code, bundled samples, or shared diagram links, then adjust Theme, Look, Scale, and Background for preview and capture.</p>
+        </section>
+
+        <section>
+          <h3>Preview Controls</h3>
+          <p>Use Fit, the Scale slider, 100%, and Reset to frame large diagrams without relying on mouse gestures.</p>
         </section>
 
         <section>

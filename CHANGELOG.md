@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.4.0 - 2026-06-23
+
+- Added a Mermaid-Snapper bundled sample that diagrams the app's source, render, artboard, and export flow.
+
+## 0.3.5 - 2026-06-23
+
+- Trim rendered SVG viewBoxes to the visible child content before sizing the artboard.
+
+## 0.3.4 - 2026-06-23
+
+- Tightened automatic artboard sizing by measuring rendered SVG content before falling back to Mermaid's wider viewBox.
+
+## 0.3.3 - 2026-06-23
+
+- Removed the manual Width artboard control.
+- Automatically size the preview/export artboard to the rendered Mermaid SVG after each render.
+- Moved Background into Diagram options and top-aligned rendered diagrams inside the artboard.
+
+## 0.3.2 - 2026-06-23
+
+- Replaced the Scale numeric stepper with a touch-friendly slider and percent readout.
+- Added Fit, Scale slider, 100%, and reset pan controls to the preview toolbar.
+- Allowed the stacked editor/preview splitter to collapse the editor further for preview-focused tablet layouts.
+
 ## 0.3.1 - 2026-06-22
 
 - Linked the header logo and title to the hosted app root for a quick Home action that clears shared-link URLs.
